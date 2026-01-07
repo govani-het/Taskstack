@@ -3,6 +3,8 @@
     --background-color: #f8f8f8;
 }
 
+/* Global Css */
+
 main{
     height: 950px;
     width: 100%;
@@ -15,6 +17,9 @@ main{
     padding: 0px 120px;
 }
 
+/* Global Css End */
+
+/* Header OR Nav Css */
 .nav-container
 {
     display: flex;
@@ -34,8 +39,6 @@ ul{
     align-items: center;
     gap: 40px;
 }
-
-
 
 .logo
 {   
@@ -71,17 +74,39 @@ a:hover{
     color: var(--primary-color);
     border: 3px solid var(--primary-color);
 }
+/* Header OR Nav Css End */
 
-.content-section{
+/*section1 Css Start*/
+
+.content-section1{
+    border: 1px solid var(--primary-color);
     display: flex;
     height: 776px;
-    
+    gap: 0px;
 }
 
 .text-content h1
 {
+    font-size: 55px;
     font-weight: 700;
+    font-style: bold;
+    font-family: 'Roboto', flex;
 }
+
+.text-content span
+{
+    color: var(--primary-color);
+}
+
+.text-content p
+{
+    font-size: 16px;
+    font-weight: 400;
+    font-family: 'Roboto', flex;
+}
+
+
+
 .info-section{
     
     height: 280px;
@@ -139,8 +164,8 @@ a:hover{
 
 .people-image{
     display: block;
+    padding-right: 0px;
     margin-top: 100px;
-    margin-right: 120px;
     margin-left: 100px;
     border-radius: 20px;
     height: 576px;
@@ -148,6 +173,148 @@ a:hover{
     object-fit: cover;
 }
 
-.info-section span{
+
+
+/*section1 Css End*/
+
+
+/*section2 Css Start*/
+
+.content-section2 {
+    border: 1px solid var(--primary-color);
+    display: flex;
+    height: 834px;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+}
+
+.image-wrapper {
+    position: relative;
+    width: 522px;
+    height: 594px;
+    
+}
+
+.image-wrapper::before {
+    content: "";
+    position: absolute;
+    width: 560px;
+    height: 540px;
+    background-color: #e6ecff;
+    border-radius: 50% / 60%;
+    top: 65%;
+    left: 40%;
+
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+
+.girl-image {
+    position: relative;
+    height: 635.59px;
+    width: 463.64px;
+    z-index: 2;
+    overflow: hidden;
+}
+
+.text-content-section2 {
+    height: 370px;
+    width: 588px;
+    margin-right: 0px;
+    gap: 20px;
+    padding-left: 0px;
+}
+
+
+.text-content-section2 h1 {
+    font-size: 40px;
+    font-weight: 700;
+    font-style: bold;
+    font-family: 'Roboto', flex;
+}
+.text-content-section2 span {
     color: var(--primary-color);
 }
+
+.text-content-section2 p {
+    font-size: 16px;
+    font-weight: 400;
+    font-family: 'Roboto', flex;
+    font-style: regular;
+    color: #4b4b4b;
+}
+
+/*section2 Css End*/
+
+/*section3 Css Start*/
+.content-section3 {
+    border: 1px solid var(--primary-color);
+    display: flex;
+    flex-direction: column; 
+    height: 607px;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+}
+
+.text-content-section3 {
+    height: 55px;
+    width: 600px;
+    font-size: 40px;
+    font-weight: 600;
+    font-style: SemiBold;
+    font-family: 'Roboto', flex;
+    text-align: center;
+}
+.text-content-section3 span {
+    color: var(--primary-color);
+}
+
+.section3-inside{
+    border: 1px solid var(--primary-color);
+    height: 262px;
+    width: 1200px;
+    display: flex;
+    gap: 30px;
+}
+
+.section3-inside-div{
+    border: 1px solid var(--primary-color);
+    height: 262px;
+    width: 384px;
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: left;
+    gap: 24px;
+}
+.section3-inside1-image img {
+    padding-top: 20px;
+    padding-left: 20px;
+    width: 40px;
+    height: 40px;
+    z-index: 1;
+}
+
+.section3-inside-div h2 {
+
+    font-size: 20px;
+    font-weight: 600;
+    font-style: bold;
+    font-family: 'Roboto', flex;
+    color: #1d252d;
+    padding-left: 20px;
+}
+
+.section3-inside-div p {
+    font-size: 16px;
+    font-weight: 400;
+    font-style: regular;
+    font-family: 'Roboto', flex;
+    color: #4b4b4b;
+    
+}
+
+/*section3 Css End*/
