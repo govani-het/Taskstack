@@ -94,17 +94,17 @@ a:hover{
 /*section1 Css Start*/
 
 .content-section1{
-    padding: 0px 24px; /* use container gutters */
+    padding: 0px 24px; 
     background-color:var(--background-color);
     display: flex;
-    justify-content: center; /* center inner items */
-    align-items: center; /* vertically center */
+    justify-content: center; 
+    align-items: center; 
     height: 776px;
     gap: 24px;
 }
 
 .info-section{ 
-    padding-top: 0px; /* reset large top padding so content centers */
+    padding-top: 0px; 
     margin-left: 0px;
 }
 
@@ -347,13 +347,13 @@ a:hover{
     margin-right: -50vw;
     width: 100vw;
     box-sizing: border-box;
-    padding-left: 24px; /* match container gutters */
+    padding-left: 24px; 
     padding-right: 24px;
 }
 
 .content-section4 {
     display: flex;
-    flex-direction: column; /* stack heading and profiles */
+    flex-direction: column; 
     align-items: center;
     padding-top: 40px; 
     padding-bottom: 60px;
@@ -410,7 +410,7 @@ a:hover{
 .profile-card {
     
     padding: 16px;
-    text-align: left; /* align text to left */
+    text-align: left; 
     border-radius: 8px;
     
     display: flex;
@@ -727,22 +727,20 @@ a:hover{
 
 .footer-info{
     height: auto;
-    max-width: 1200px;
-    margin: 0 auto;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    justify-content: center;
+    flex-direction: row;
     gap: 40px;
-    padding: 0 24px;
+  
 }
 
 .inside-footer-info{
     height: auto;  
-    max-width: 1200px;
-    margin: 0 auto;
+
+    width: 100%;
     display: flex;
-    justify-content: space-between;
-    gap: 24px;
+    justify-content: center;
+    gap: 100px;
     padding: 24px 0 0 0;
 }
 
