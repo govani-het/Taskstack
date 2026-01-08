@@ -3,6 +3,16 @@
     --background-color: #f8f8f8;
 }
 
+/* Comman Css */
+
+span{
+    font-family: 'Roboto', sans-serif;
+    color: var(--primary-color);
+}
+
+
+
+/*comman Css End */
 /* Global Css */
 
 main{
@@ -23,6 +33,7 @@ main{
 .nav-container
 {
     display: flex;
+    padding: 0px 120px;
     flex-direction: column;
     height: 80px;   
     background-color:var(--background-color);
@@ -81,8 +92,9 @@ a:hover{
 .content-section1{
     border: 1px solid var(--primary-color);
     display: flex;
+    
     height: 776px;
-    gap: 0px;
+    gap: 24px;
 }
 
 .text-content h1
@@ -91,11 +103,6 @@ a:hover{
     font-weight: 700;
     font-style: bold;
     font-family: 'Roboto', flex;
-}
-
-.text-content span
-{
-    color: var(--primary-color);
 }
 
 .text-content p
@@ -111,9 +118,9 @@ a:hover{
     
     height: 280px;
     width: 588px;
-    margin-left: 0px;
     padding-top: 248px;
-    padding-left: 0px;
+    margin-left: 130px;
+
     
 }
 
@@ -166,7 +173,6 @@ a:hover{
     display: block;
     padding-right: 0px;
     margin-top: 100px;
-    margin-left: 100px;
     border-radius: 20px;
     height: 576px;
     width: 588px;
@@ -196,7 +202,7 @@ a:hover{
     
 }
 
-.image-wrapper::before {
+.image-wrapper::after { 
     content: "";
     position: absolute;
     width: 560px;
@@ -204,8 +210,8 @@ a:hover{
     background-color: #e6ecff;
     border-radius: 50% / 60%;
     top: 65%;
-    left: 40%;
-
+    left: 45%;
+    overflow: hidden;
     transform: translate(-50%, -50%);
     z-index: 1;
 }
@@ -213,10 +219,10 @@ a:hover{
 
 .girl-image {
     position: relative;
-    height: 635.59px;
+    height: 660.59px;
     width: 463.64px;
     z-index: 2;
-    overflow: hidden;
+    border-radius: 200px;
 }
 
 .text-content-section2 {
@@ -234,9 +240,7 @@ a:hover{
     font-style: bold;
     font-family: 'Roboto', flex;
 }
-.text-content-section2 span {
-    color: var(--primary-color);
-}
+
 
 .text-content-section2 p {
     font-size: 16px;
@@ -267,9 +271,6 @@ a:hover{
     font-style: SemiBold;
     font-family: 'Roboto', flex;
     text-align: center;
-}
-.text-content-section3 span {
-    color: var(--primary-color);
 }
 
 .section3-inside{
@@ -318,3 +319,135 @@ a:hover{
 }
 
 /*section3 Css End*/
+
+
+/* Section4 Css Start */
+
+.content-section4 {
+    border: 1px solid var(--primary-color);
+    display: flex;
+    flex-direction: column; /* stack heading and profiles */
+    align-items: center;
+    padding-top: 40px; 
+    padding-bottom: 60px;
+    width: 100%;
+    gap: 40px;
+}
+
+.text-content-section4 {
+    display: flex;
+    justify-content: space-between; 
+    align-items: flex-start; 
+    width: 1200px; 
+    gap: 20px;
+}
+
+.text-content-section4 h1 {
+    font-size: 40px;
+    font-weight: 700;
+    font-style: bold;
+    font-family: 'Roboto', flex;
+    margin: 0;
+}
+
+
+.button-content-section4 {
+    border: 1px solid var(--primary-color);
+    background-color: var(--primary-color);
+    height: 50px;
+    width: 111px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    align-self: flex-start; 
+}
+
+
+.profiles-wrapper {
+    width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.profile-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.profile-card {
+    
+    padding: 16px;
+    text-align: left; /* align text to left */
+    border-radius: 8px;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.profile-image {
+    width: 384;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.profile-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0px 20px;
+    gap: 12px;
+}
+
+.profile-info h3 { margin: 0 0 4px; font-size: 18px; }
+.profile-info .designation { margin: 0; color: var(--primary-color); font-weight: 600; }
+
+.price {
+    color: var(--primary-color);
+    border: 1px solid var(--background-color);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    background-color: #0a49e71a;    
+    display: inline-block;
+}
+
+.profile-overlay {
+    padding: 15px;
+    height: 50px;
+    width: 344px;
+    gap: 10px;
+    display: flex;
+ 
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.tag {
+    color: #4b4b4b;
+    height: 20px;
+    font-family: 'Roboto', flex;
+    padding: 1px 8px 1px 8px;
+    border-radius: 3px;
+    font-weight: 400;
+    font-size: 12px;
+    font-style: regular;
+    background-color: #7f838623;
+ 
+    gap: 20px;
+}
+
+.profile-card p{
+    
+    font-size: 12px;
+    font-weight: 400;
+    font-style: regular;
+    font-family: 'Roboto', flex;
+    color: #1d252d;
+}
