@@ -164,17 +164,21 @@ a:hover{
     align-items: center;
     width: 153px;
     height: 50px;
-    gap: 14px;
+    gap: 12px;
+    padding-top: 10px;
 }
 .watch-video img{
-    padding-top: 25px;
+    
     height: 50px;
     width: 50px;
 }
 
 .span-class{
-    padding-top: 30px;
-    font-size: 16px;    
+    font-size: 16px; 
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;  
+    white-space: nowrap; /* prevent wrapping "Watch Video" */
 }
 
 .people-image{
