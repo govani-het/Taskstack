@@ -22,10 +22,10 @@ main{
 }
 
 .container{
-    max-width: 1440px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 0px 120px;
-}
+    padding: 0px 24px; /* smaller gutter inside centered content */
+} 
 
 /* Global Css End */
 
@@ -40,8 +40,12 @@ main{
     margin: 0px;
     justify-content: space-between;
     flex-direction: row;
-    padding: 0px 120px;
+    padding: 0px 24px; /* align with .container gutters */
 }
+
+/* inner nav wrapper keeps nav content centered within 1200px */
+.nav-inner { max-width: 1200px; width: 100%; margin: 0 auto; display: flex; align-items: center; gap: 20px; }
+.nav-inner .logo { margin-right: auto; } 
 ul{ 
 
     list-style-type: none;
@@ -90,11 +94,18 @@ a:hover{
 /*section1 Css Start*/
 
 .content-section1{
-    padding: 0px 120px;
+    padding: 0px 24px; /* use container gutters */
     background-color:var(--background-color);
     display: flex;
+    justify-content: center; /* center inner items */
+    align-items: center; /* vertically center */
     height: 776px;
     gap: 24px;
+}
+
+.info-section{ 
+    padding-top: 0px; /* reset large top padding so content centers */
+    margin-left: 0px;
 }
 
 .text-content h1
@@ -272,12 +283,12 @@ a:hover{
 }
 
 .section3-inside{
-    
     height: 262px;
-    width: 1200px;
+    max-width: 1200px; /* content boundary */
+    margin: 0 auto;
     display: flex;
     gap: 30px;
-}
+} 
 
 .section3-inside-div{
     
@@ -321,8 +332,26 @@ a:hover{
 
 /* Section4 Css Start */
 
+/* Make some sections full-bleed so their background spans the viewport */
+.content-section1,
+.content-section2,
+.content-section3,
+.content-section5,
+.content-section7,
+.main-footer-div,
+.nav-container {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    box-sizing: border-box;
+    padding-left: 24px; /* match container gutters */
+    padding-right: 24px;
+}
+
 .content-section4 {
-    
     display: flex;
     flex-direction: column; /* stack heading and profiles */
     align-items: center;
@@ -330,15 +359,16 @@ a:hover{
     padding-bottom: 60px;
     width: 100%;
     gap: 40px;
-}
+} 
 
 .text-content-section4 {
     display: flex;
     justify-content: space-between; 
     align-items: flex-start; 
-    width: 1200px; 
+    max-width: 1200px; 
+    margin: 0 auto;
     gap: 20px;
-}
+} 
 
 .text-content-section4 h1 {
     font-size: 40px;
@@ -364,11 +394,12 @@ a:hover{
 
 
 .profiles-wrapper {
-    width: 1200px;
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 20px;
-}
+} 
 
 .profile-content {
     display: grid;
@@ -612,14 +643,14 @@ a:hover{
 
 
 .plan-section {
-    
     height: 415px;
-    width: 1200px;
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 24px;
-}
+} 
 
 .plan-card1{
     background-color: #ffffff;
@@ -688,77 +719,66 @@ a:hover{
 /* Footer Css Start */
 
 .main-footer-div{
-    border-bottom: 1px solid black;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-    background-color: #ffffff;
+    border-top: 1px solid #eee;
+    display: block;
+    background-color: var(--background-color);
+    padding: 40px 0 0 0;
 }
 
 .footer-info{
-    
-    height: 220px;
-    width: 1440px;
+    height: auto;
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
-    justify-content: center;
-    margin-top: 40px;
-    
-    gap: 100px;
-    padding-bottom: 40px;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 0 24px;
 }
 
 .inside-footer-info{
-    height: 180px;  
-    width: 1440px;
+    height: auto;  
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
-    justify-content: space-evenly;
-    gap: 16px;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 0 0 0;
 }
 
 .company-logo{
-    width: 282px;
-    height: 162px;
+    width: 360px;
     text-align: left;
 }
 
 .company-logo h1{
-    font-size: 34px;
-    font-style: bold;
-    height: 48px;
-    width: 97px;
-    color: #1a1a1a;
-    justify-content: center;
-    padding-top: 20px;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
 }
 
-.company-link h6{
-    margin: 10px;
-    color: #1d252d;
+.company-logo p{
+    margin: 0;
+    color: var(--p-tag);
     font-size: 14px;
-    font-weight: 500;
-    font-style: medium;
+    line-height: 1.4;
 }
 
-.company-link h4{
-    margin: 10px;
-    color: var(--primary-color);
-    font-size: 16px;
-    font-weight: 500;
-    font-style: medium;
-    font-family: 'Roboto', flex;
-}
+.company-link{ display: flex; flex-direction: column; gap: 8px; }
+.company-link h6{ margin: 0; color: var(--p-tag); font-size: 14px; font-weight: 400; }
+.company-link h4{ margin: 0; color: var(--primary-color); font-size: 15px; font-weight: 600; }
 
-.company-link .social-icons { display: flex; gap: 6px; margin-top: 10px; }
-.company-link .social-icons i { font-size: 16px; color: #1d252d; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; }
+.company-link .social-icons { display: flex; gap: 8px; margin-top: 8px; }
+.company-link .social-icons i { font-size: 14px; color: #1d252d; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; }
 .company-link .social-icons i:hover { background: #e6ecff; }
 
 
 .copyright-div{
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 100%;
     text-align: center;
-    padding: auto;
-    margin-bottom: 10px;
+    padding: 18px 0 30px 0;
+    color: #6b6b6b;
+    font-size: 13px;
+    border-top: 1px solid #eee;
+    margin-top: 20px;
 }
