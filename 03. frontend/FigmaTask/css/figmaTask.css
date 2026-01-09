@@ -24,7 +24,7 @@ main{
 .container{
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0px 24px; /* smaller gutter inside centered content */
+    padding: 0px 24px; 
 } 
 
 /* Global Css End */
@@ -40,10 +40,10 @@ main{
     margin: 0px;
     justify-content: space-between;
     flex-direction: row;
-    padding: 0px 24px; /* align with .container gutters */
+    padding: 0px 24px; 
 }
 
-/* inner nav wrapper keeps nav content centered within 1200px */
+
 .nav-inner { max-width: 1200px; width: 100%; margin: 0 auto; display: flex; align-items: center; gap: 20px; }
 .nav-inner .logo { margin-right: auto; } 
 ul{ 
@@ -178,7 +178,7 @@ a:hover{
     display: inline-flex;
     justify-content: center;
     align-items: center;  
-    white-space: nowrap; /* prevent wrapping "Watch Video" */
+    white-space: nowrap; 
 }
 
 .people-image{
@@ -288,7 +288,7 @@ a:hover{
 
 .section3-inside{
     height: 262px;
-    max-width: 1200px; /* content boundary */
+    max-width: 1200px; 
     margin: 0 auto;
     display: flex;
     gap: 30px;
@@ -336,7 +336,7 @@ a:hover{
 
 /* Section4 Css Start */
 
-/* Make some sections full-bleed so their background spans the viewport */
+
 .content-section1,
 .content-section2,
 .content-section3,
