@@ -23,9 +23,6 @@ span{
     font-weight: 500;
 }
 
-.nav-link.active {
-    color: red;
-}
 .nav-link:hover {
     color: red;
 }
