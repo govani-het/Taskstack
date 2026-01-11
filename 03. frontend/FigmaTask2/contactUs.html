@@ -33,11 +33,11 @@
                     <div class="collapse navbar-collapse" id="navbarContent">
 
                     <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-4">
-                        <li class="nav-item"><a class="nav-link"  href="#">Home</a></li>
+                        <li class="nav-item"><a class="nav-link"  href="/03. frontend/FigmaTask2/homePage.html">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Pricing</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/03. frontend/FigmaTask2/pricePage.html">Pricing</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">About Us</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Contact Us</a></li>
+                        <li class="nav-item"><a class="nav-link active" style="color: red;" href="/03. frontend/FigmaTask2/contactUs.html">Contact Us</a></li>
                     </ul>
 
             
@@ -105,34 +105,34 @@
 
     <!-- contact form section start -->
 
-    <section class="form">
+    <section class="form" data-testid="contact-form-section">
         <div class="container">
             <form class="row g-3">
                 <div class="col-md-6">
                     <label for="Full Name" class="form-label">Full Name</label>
-                    <input type="text" class="form-control" id="inputFullName" placeholder="Enter Full Name">
+                    <input type="text" class="form-control" data-testid="input-full-name" id="inputFullName" placeholder="Enter Full Name">
                 </div>
 
                 <div class="col-md-6">
                     <label for="inputEmail4" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="inputEmail4" placeholder="Enter Email Address">
+                    <input type="email" class="form-control" data-testid="input-email" id="inputEmail4" placeholder="Enter Email Address">
                 </div>
 
                 <div class="col-12">
                     <label for="inputAddress" class="form-label">Message</label>
-                    <textarea class="form-control" id="inputAddress" placeholder="Enter Your Message"></textarea>
+                    <textarea class="form-control" id="inputAddress" data-testid="input-message" placeholder="Enter Your Message"></textarea>
                 </div>
 
                 <div class="col-12">
                     <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="gridCheck">
+                    <input class="form-check-input" data-testid="checkbox-terms" type="checkbox" id="gridCheck">
                     <label class="form-check-label" for="gridCheck">
                         I Accept the <span>Terms of Services</span> & <span>Privacy Policy</span>.
                     </label>
                     </div>
                 </div>
                 <div class="col-12 text-center">
-                    <button type="submit" class="btn btn-danger">Submit</button>
+                    <button type="submit" data-testid="button-submit" class="btn btn-danger">Submit</button>
                 </div>
                 </form>
         </div>
@@ -144,12 +144,6 @@
 
     <section class="question-section">
         <div class="container">
-             <div class="row text-center">
-                <h2 class="text-center mb-4">Here are Common Questions You May Have (FAQs)</h2>
-                <p class="text-center mb-4">
-                    Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.            
-                </p>
-             </div>
              <div class="row text-start pt-5 ">
                 <div class="accordion accordion-flush" id="accordionFlushExample">
                     
@@ -226,11 +220,11 @@
                 </div>
                 <div class="menu-bar">
                     <ul class="row list-unstyled gx-3 gy-2 justify-content-center">
-                        <li class="col-6 col-md-auto text-center"><a href="#">Home</a></li>
-                        <li class="col-6 col-md-auto text-center"><a href="#">Features</a></li>
-                        <li class="col-6 col-md-auto text-center"><a href="#">Pricing</a></li>
+                        <li class="col-6 col-md-auto text-center"><a href="/03. frontend/FigmaTask2/homePage.html">Home</a></li>
+                        <li class="col-6 col-md-auto text-center"><a >Features</a></li>
+                        <li class="col-6 col-md-auto text-center"><a href="/03. frontend/FigmaTask2/pricePage.html">Pricing</a></li>
                         <li class="col-6 col-md-auto text-center"><a href="#">About Us</a></li>
-                        <li class="col-6 col-md-auto text-center"><a href="#">Contact Us</a></li>
+                        <li class="col-6 col-md-auto text-center"><a href="/03. frontend/FigmaTask2/contactUs.html">Contact Us</a></li>
                     </ul>
                 </div>
                 <div class="social-icon d-flex  gap-4">
