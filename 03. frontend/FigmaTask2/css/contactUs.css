@@ -138,8 +138,8 @@
     background-image: url('../image/section5BG.png');
     background-size: cover;
     background-position: center;
-    border-radius: 8px;
-    color: white;
+    border-radius: 30px;
+    color: white; 
     font-size: 30px;
     font-weight: 600;
     font-family: 'Figtree', sans-serif;
