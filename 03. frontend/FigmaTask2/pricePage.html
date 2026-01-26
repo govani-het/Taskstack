@@ -83,14 +83,15 @@
             </div>
 
             <div class="row text-center d-flex justify-content-center gap-1 mt-5">
-                <div class="text-end pricing-button active" style="background-color: red; color: white;">
+                <div id="monthlyBtn" class="text-end pricing-button active" >
                     MONTHLY
                 </div>
                     
-                <div class="text-start pricing-button">
+                <div id="yearlyBtn" class="text-start pricing-button">
                     YEARLY
                 </div>
             </div>
+
 
             <div class="row price-card gap-3">
                 <div class="col basic-price">
@@ -259,5 +260,22 @@
 
 
  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>   
+
+ <script>
+    const monthlyBtn = document.getElementById("monthlyBtn");
+    const yearlyBtn = document.getElementById("yearlyBtn");
+
+    yearlyBtn.addEventListener("mouseenter", () => {
+        monthlyBtn.classList.remove("active");
+        yearlyBtn.classList.add("active");
+    });
+
+    monthlyBtn.addEventListener("mouseenter", () => {
+        yearlyBtn.classList.remove("active");
+        monthlyBtn.classList.add("active");
+    });
+</script>
+
+
 </body>
 </html>

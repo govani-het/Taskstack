@@ -47,6 +47,12 @@ span{
     color: #1d1d1d;
     font-weight: 400;
 }
+
+@media (max-width: 768px){
+    .text-content h1{
+        font-size: 35px;
+    }
+}
 /* section 1 styles end */
 
 

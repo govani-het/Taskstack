@@ -757,11 +757,6 @@ a {
     font-size: 12px;
   }
 }
-.container {
-  margin: 0 auto;
-  padding: 0 16px;
-}
-
 .site-footer {
   font-family: sans-serif;
   background: #fff;
@@ -875,7 +870,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 40px 20px;
+  padding: 20px;
 }
 .blog-section2 .blog-page img {
   width: 100%;
@@ -1093,10 +1088,10 @@ a {
 }
 .blog > div:last-child > div h6 {
   font-family: "Figtree", sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #262626;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 @media (max-width: 768px) {
   .blog > div:last-child > div h6 {
@@ -1110,14 +1105,48 @@ a {
     margin-bottom: 12px;
   }
 }
+.blog .about-blog-detail {
+  border: 1px solid rgba(43, 40, 40, 0.1647058824);
+  border-radius: 10px;
+  padding: 20px;
+  height: 350px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 768px) {
+  .blog .about-blog-detail {
+    height: auto;
+    padding: 15px;
+  }
+}
+@media (max-width: 480px) {
+  .blog .about-blog-detail {
+    padding: 12px;
+  }
+}
+.blog .about-blog-detail h6 {
+  margin-bottom: 15px;
+  flex-shrink: 0;
+}
+.blog .about-blog-detail > div {
+  flex: 1;
+  overflow-y: auto;
+}
 .blog .about-blog {
-  padding-top: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   padding-left: 20px;
   color: #666;
   font-weight: 500;
   border-left: 3px solid transparent;
   transition: all 0.3s ease;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.blog .about-blog h5 {
+  margin: 0;
 }
 @media (max-width: 768px) {
   .blog .about-blog {
@@ -1131,6 +1160,10 @@ a {
     padding-top: 12px;
     padding-left: 12px;
   }
+}
+.blog .about-blog:first-child {
+  border-left-color: #00c9a7;
+  color: #00c9a7;
 }
 .blog .about-blog:hover {
   border-left-color: #00c9a7;
@@ -1155,6 +1188,9 @@ a {
   }
 }
 
+.my-5 {
+  margin-top: 10px;
+}
 .my-5 div > div .d-flex {
   display: flex;
   gap: 12px;
@@ -1214,7 +1250,7 @@ a {
 }
 .my-5 div > div .d-flex > div:last-child h6 {
   font-family: "Figtree", sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: #262626;
   margin: 8px 0 0 0;

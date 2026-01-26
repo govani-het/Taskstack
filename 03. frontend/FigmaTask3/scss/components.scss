@@ -882,11 +882,11 @@ a{
 }
 
 
-.container {
+// .container {
   
-  margin: 0 auto;
-  padding: 0 16px;
-}
+//   margin: 0 auto;
+//   padding: 0 16px;
+// }
 
 .site-footer {
   font-family: sans-serif;
@@ -1029,7 +1029,7 @@ a{
         display: flex;
         flex-direction: column;
         gap: 20px;
-        padding: 40px 20px;
+        padding: 20px;
       }
 
         img {
@@ -1246,10 +1246,10 @@ a{
 
       h6 {
         font-family: abstract.$font-primary;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
         color: #262626;
-        margin-bottom: 20px;
+        margin-bottom: 5px;
 
         @media (max-width: 768px) {
           font-size: 16px;
@@ -1264,14 +1264,50 @@ a{
     }
   }
 
+  .about-blog-detail {
+    border: 1px solid #2b28282a;
+    border-radius: 10px;
+    padding: 20px;
+    height: 350px;
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+
+    @media (max-width: 768px) {
+      height: auto;
+      padding: 15px;
+    }
+
+    @media (max-width: 480px) {
+      padding: 12px;
+    }
+
+    h6 {
+      margin-bottom: 15px;
+      flex-shrink: 0;
+    }
+
+    > div {
+      flex: 1;
+      overflow-y: auto;
+    }
+  }
+
   .about-blog {
-    padding-top: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     padding-left: 20px;
     color: #666;
     font-weight: 500;
     border-left: 3px solid transparent;
     transition: all 0.3s ease;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+
+    h5 {
+      margin: 0;
+    }
 
     @media (max-width: 768px) {
       padding-top: 15px;
@@ -1282,6 +1318,11 @@ a{
     @media (max-width: 480px) {
       padding-top: 12px;
       padding-left: 12px;
+    }
+
+    &:first-child {
+      border-left-color: #00c9a7;
+      color: #00c9a7;
     }
 
     &:hover {
@@ -1310,6 +1351,7 @@ a{
 
 
 .my-5 {
+  margin-top: 10px;
   div > div {
     .d-flex {
       display: flex;
@@ -1369,7 +1411,7 @@ a{
 
         h6 {
           font-family: abstract.$font-primary;
-          font-size: 13px;
+          font-size: 15px;
           font-weight: 600;
           color: #262626;
           margin: 8px 0 0 0;
