@@ -1,4 +1,21 @@
 def spiral_number_pattern(number):
+    """
+    The function creates an `n x n` matrix and fills it with consecutive numbers starting from 1, arranged in a clockwise spiral pattern.
+
+    Example (number = 5):
+        1   2   3   4   5
+        16  17  18  19  6
+        15  24  25  20  7
+        14  23  22  21  8
+        13  12  11  10  9
+
+    Args:
+        number (int): The size of the square matrix (number of rows
+            and columns).
+
+    Returns:
+        list[list[int]]: A 2D list representing the spiral matrix.
+    """
     count = 1
     top = 0
     bottom = number - 1

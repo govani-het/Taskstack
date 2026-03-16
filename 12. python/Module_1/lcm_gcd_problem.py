@@ -1,5 +1,16 @@
 def gcd(number1, number2) -> int:
-    """Return the greatest common divisor of two numbers."""
+    """
+    Calculate the Greatest Common Divisor (GCD) of two integers.
+
+    The function finds the largest positive integer that divides both input numbers without leaving a remainder.
+
+    Args:
+        number1 (int): First integer.
+        number2 (int): Second integer.
+
+    Returns:
+        int: The greatest common divisor of number1 and number2.
+    """
     gcd_result = 1
 
     for i in range(1, min(number1, number2) + 1):
@@ -10,7 +21,20 @@ def gcd(number1, number2) -> int:
 
 
 def lcm(number1, number2, gcd_value):
-    """Return the least common multiple of two numbers."""
+    """
+    Calculate the Least Common Multiple (LCM) of two integers.
+
+    The function uses the mathematical relationship:
+        LCM(a, b) = (a * b) // GCD(a, b)
+
+    Args:
+        number1 (int): First integer.
+        number2 (int): Second integer.
+        gcd_value (int): Precomputed GCD of number1 and number2.
+
+    Returns:
+        int: The least common multiple of the two numbers.
+    """
     return (number1 * number2) // gcd_value
 
 
