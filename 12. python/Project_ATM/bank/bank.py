@@ -15,7 +15,7 @@ class Bank:
             print(constant.BANK_NOT_FOUND)
             return False
         
-        print("\nAll Banks:")
+        print(constant.AVAILABLE_BANK)
         for bank_data in banks.values():
             print(f"  {bank_data.get('name')} - {bank_data.get('branch')}")
         print()

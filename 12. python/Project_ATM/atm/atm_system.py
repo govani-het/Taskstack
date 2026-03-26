@@ -282,7 +282,7 @@ class ATMSystem:
         user['daily_deposit_count'] = user.get('daily_deposit_count', 0) + 1
         
         print("\n" + constant.MSG_DEPOSIT_SUCCESS.format(amount, user['balance']))
-        print(f" Daily deposited: INR {user['daily_deposited']} / INR {constant.MAX_DAILY_DEPOSIT_AMOUNT}")
+        print(f" Daily deposited: INR {user['daily_deposited']}")
 
     def _change_pin(self, user_id, new_pin):
         """Change the user's PIN."""
