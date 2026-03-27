@@ -1,13 +1,18 @@
+import constant
+
+
 banks = {
     "BNK001": {
         "name": "State Bank",
         "branch": "Navrangpura",
-        "vault": 50000000
+        "vault": constant.BANK_VAULT_AMOUNT,
+        "password": constant.SBI_BANK_DEFAULT_PASSWORD_HASH
     },
     "BNK002": {
-        "name": "National Bank",
+        "name": "HDFC Bank",
         "branch": "Satellite",
-        "vault": 50000000
+        "vault": constant.BANK_VAULT_AMOUNT,
+        "password": constant.HDFC_BANK_DEFAULT_PASSWORD_HASH
     }
 }
 
@@ -26,7 +31,8 @@ users = {
         "daily_withdrawal_count": 0,
         "daily_deposited": 0,
         "daily_deposit_count": 0,
-        "login_attempt": 0
+        "login_attempt": 0,
+        "pin_changed": False
     },
     "USR002": {
         "name": "Raj",
@@ -42,7 +48,8 @@ users = {
         "daily_withdrawal_count": 0,
         "daily_deposited": 0,
         "daily_deposit_count": 0,
-        "login_attempt": 0
+        "login_attempt": 0,
+        "pin_changed": True
     },
     "USR003": {
         "name": "Amit",
@@ -58,7 +65,8 @@ users = {
         "daily_withdrawal_count": 0,
         "daily_deposited": 0,
         "daily_deposit_count": 0,
-        "login_attempt": 0
+        "login_attempt": 0,
+        "pin_changed": False
     },
     "USR004": {
         "name": "Neha",
@@ -74,7 +82,8 @@ users = {
         "daily_withdrawal_count": 0,
         "daily_deposited": 0,
         "daily_deposit_count": 0,
-        "login_attempt": 0
+        "login_attempt": 0,
+        "pin_changed": False
     }
 }
 

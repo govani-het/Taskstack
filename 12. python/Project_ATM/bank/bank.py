@@ -3,14 +3,27 @@ import constant
 from datetime import datetime
 import random
 import re
-
+import hashlib
 
 class Bank:
+    """Bank class for managing bank operations like creating users and ATMs."""
+
     def __init__(self):
+        """Initializes the Bank class.
+        
+        Takes no arguments.
+        
+        Returns nothing.
+        """
         self.selected_bank_id = None
 
     def _display_banks(self):
-        """Display all banks."""
+        """Displays all banks.
+        
+        Takes no arguments.
+        
+        Returns True if banks exist, False otherwise.
+        """
         if not banks:
             print(constant.BANK_NOT_FOUND)
             return False
@@ -22,22 +35,45 @@ class Bank:
         return True
 
     def _select_bank(self):
-        """Select a bank for operations"""
-        if not self._display_banks():
-            return False
+        """Selects a bank for operations.
         
+        Takes no arguments.
+        
+        Returns True if selected, False otherwise.
+        """
         while True:
+            if not self._display_banks():
+                return False
+            
             bank_name = input(constant.BANK_CHOICE_INPUT).strip()
             bank_id = self._fetch_bank(bank_name)
-            if bank_id:
-                self.selected_bank_id = bank_id
-                print(f'\nSelected bank: {banks[bank_id]["name"]} - {banks[bank_id]["branch"]}')
-                return True
-            else:
+            if not bank_id:
                 print(constant.BANK_NOT_FOUND)
+                continue
+
+            # Now ask for password up to 3 attempts
+            for attempt in range(3):
+                password = input(constant.BANK_PASSWORD_INPUT).strip()
+                hashed_input = hashlib.sha256(password.encode()).hexdigest()
+                if hashed_input == banks[bank_id].get('password'):
+                    self.selected_bank_id = bank_id
+                    print(f'\nSelected bank: {banks[bank_id]["name"]} - {banks[bank_id]["branch"]}')
+                    return True
+                else:
+                    remaining_attempts = 3 - attempt - 1
+                    if remaining_attempts > 0:
+                        print(constant.BANK_PASSWORD_ERROR)
+                    else:
+                        print("\nMaximum password attempts exceeded.")
+                        break
 
     def _display_atms(self):
-        """Display all available ATMs for the selected bank"""
+        """Displays all available ATMs for the selected bank.
+        
+        Takes no arguments.
+        
+        Returns True if ATMs exist, False otherwise.
+        """
         bank_atms = [atm_data for atm_data in atms.values() if atm_data.get('bank_id') == self.selected_bank_id]
         
         if not bank_atms:
@@ -51,43 +87,75 @@ class Bank:
         return True
 
     def _fetch_bank(self, bank_name):
-        """Get bank ID by bank name"""
+        """Gets bank ID by bank name.
+        
+        Takes bank_name (string).
+        
+        Returns bank_id string or None.
+        """
         for bank_id, bank_data in banks.items():
             if bank_data.get('name').lower() == bank_name.lower():
                 return bank_id
-        return None
+        return
 
     def _fetch_atm_by_branch(self, branch_name):
-        """Get ATM ID by branch name for the selected bank"""
+        """Gets ATM ID by branch name for the selected bank.
+        
+        Takes branch_name (string).
+        
+        Returns atm_id string or None.
+        """
         for atm_id, atm_data in atms.items():
             if (atm_data.get('location').lower() == branch_name.lower() and 
                 atm_data.get('bank_id') == self.selected_bank_id):
                 return atm_id
-        return None
+        return
         
     def _create_new_user_id(self):
-        """Here we create a user ID."""
+        """Creates a new user ID.
+        
+        Takes no arguments.
+        
+        Returns a unique user ID string.
+        """
         existing_ids = [int(uid.replace('USR', '')) for uid in users.keys() if uid.startswith('USR')]
         return f"USR{str(max(existing_ids, default=0) + 1).zfill(3)}"
 
-
     def _create_new_atm_id(self):
-        existing_ids = [int(aid.replace('ATM', '')) for aid in atms.keys() if aid.startswith('ATM')]
+        """Creates a new ATM ID.
+        
+        Takes no arguments.
+        
+        Returns a unique ATM ID string.
+        """
+        existing_ids = [int(atm_id.replace('ATM', '')) for atm_id in atms.keys() if atm_id.startswith('ATM')]
         return f"ATM{str(max(existing_ids, default=0) + 1).zfill(3)}"
 
-
     def _create_pin(self):
-        """Here we create a 4-digit random card PIN number using random."""
+        """Creates a 4-digit random card PIN number.
+        
+        Takes no arguments.
+        
+        Returns a 4-digit string PIN.
+        """
         return str(random.randint(1000, 9999))
 
-
     def _create_card_number(self):
-        """Here we create a 16-digit random card number using random."""
+        """Creates a 16-digit random card number.
+        
+        Takes no arguments.
+        
+        Returns a 16-digit string card number.
+        """
         return str(random.randint(1000000000000000, 9999999999999999))
 
-
     def _validate_phone_number(self, phone):
-        """This function validates the phone number."""
+        """Validates the phone number.
+        
+        Takes phone (string).
+        
+        Returns True if valid, False otherwise.
+        """
 
         if not phone.isdigit() or len(phone) != 10:
             print(constant.PHONE_NUMBER_ERROR)
@@ -99,9 +167,13 @@ class Bank:
         
         return True
 
-
     def _validate_dob(self,dob_str):
-        """This function validates the DOB."""
+        """Validates the date of birth.
+        
+        Takes dob_str (string in DD/MM/YYYY format).
+        
+        Returns datetime object if valid, None otherwise.
+        """
         try:
             dob = datetime.strptime(dob_str, '%d/%m/%Y')
             today = datetime.now()
@@ -119,9 +191,13 @@ class Bank:
             print(constant.DOB_FORMAT_ERROR)
             return 
 
-
     def _validate_aadhar(self, aadhar, bank_id):
-        """This function validates the Aadhar card."""
+        """Validates the Aadhar card.
+        
+        Takes aadhar (string), bank_id (string).
+        
+        Returns True if valid, False otherwise.
+        """
         if not aadhar.isdigit() or len(aadhar) != 12:
             print(constant.AADHAR_CARD_ERROR)
             return False
@@ -132,13 +208,18 @@ class Bank:
         
         for user_data in users.values():
             if user_data.get('bank_id') == bank_id and user_data.get('aadhar') == aadhar:
-                print(constant.AADHAR_CARD_ALREADY_EXITS)
+                print(constant.AADHAR_CARD_ALREADY_EXISTS)
                 return False
         
         return True
 
     def _validate_pan(self, pan, bank_id):
-        """This function validates the PAN card format."""
+        """Validates the PAN card format.
+        
+        Takes pan (string), bank_id (string).
+        
+        Returns True if valid, False otherwise.
+        """
         pan_pattern = r'^[A-Z]{5}[0-9]{4}[A-Z]$'
         
         if not re.match(pan_pattern, pan):
@@ -153,7 +234,12 @@ class Bank:
         return True
 
     def _create_user(self):
-        """Here we create a user and validate user details."""
+        """Creates a user and validates user details.
+        
+        Takes no arguments.
+        
+        Returns nothing.
+        """
         print()
         
         while True:
@@ -230,14 +316,20 @@ class Bank:
             'daily_withdrawal_count': 0,
             'daily_deposited': 0,
             'daily_deposit_count': 0,
-            'login_attempt': 0
+            'login_attempt': 0,
+            'pin_changed': False
         }
 
         bank_name = banks.get(bank_id, {}).get('name', bank_id)
         print(constant.MSG_USER_ADDED.format(name, card_no, pin, bank_name, initial_balance))
 
-
     def create_atm(self):
+        """Creates a new ATM for the selected bank.
+        
+        Takes no arguments.
+        
+        Returns nothing.
+        """
         print()
 
         bank_id = self.selected_bank_id
@@ -283,6 +375,12 @@ class Bank:
         print(constant.MSG_ATM_ADDED.format(atm_id, bank_name, available_atm_balance))
 
     def show_users(self):
+        """Displays users for the selected bank.
+        
+        Takes no arguments.
+        
+        Returns nothing.
+        """
         print()
         bank_users = {uid: user_data for uid, user_data in users.items() if user_data.get('bank_id') == self.selected_bank_id}
         
@@ -296,7 +394,12 @@ class Bank:
             print(f"{uid}: {user_data.get('name')} | Balance: INR{user_data.get('balance')} | Bank: {bank_name}")
 
     def _show_atm(self):
-        """Display ATMs for the selected bank"""
+        """Displays ATMs for the selected bank.
+        
+        Takes no arguments.
+        
+        Returns nothing.
+        """
         print()
         bank_atms = {atm_id: atm_data for atm_id, atm_data in atms.items() if atm_data.get('bank_id') == self.selected_bank_id}
         
@@ -309,6 +412,12 @@ class Bank:
             print(f" {atm_id}: {atm_data.get('location')} | Cash: INR{atm_data.get('available_atm_balance'):.2f}")
 
     def deposit_to_atm(self):
+        """Deposits money to an ATM for the selected bank.
+        
+        Takes no arguments.
+        
+        Returns nothing.
+        """
         print()
         
         if not self._display_atms():
@@ -349,6 +458,12 @@ class Bank:
         print(f"Bank vault updated. New vault balance: INR{banks[bank_id]['vault']:,.2f}")
 
     def bank_menu(self):
+        """Displays and handles the bank menu for operations.
+        
+        Takes no arguments.
+        
+        Returns nothing.
+        """
         # First select a bank
         if not self._select_bank():
             return
