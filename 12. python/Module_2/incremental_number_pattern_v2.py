@@ -1,43 +1,45 @@
-def incremental_number_pattern(number):
+def incremental_number_pattern(number: int) -> None:
     """
-    The function prints numbers sequentially starting from 1 and arranges them in a triangular pattern based on the given number of rows.
+    Print a triangular incremental number pattern using a single loop.
 
-    Example (number = 5):
-        1
-        2 3
-        4 5 6
-        7 8 9 10
-        11 12 13 14 15
+    Each row contains consecutive integers, continuing from the previous row.
+
+    Example:
+        Input: 5
+
+        Output:
+            1
+            2 3
+            4 5 6
+            7 8 9 10
+            11 12 13 14 15
 
     Args:
-        number (int): The number of rows to print in the triangle.
+        number (int): The total number of rows in the pattern.
+
+    Returns:
+        None: The function prints the pattern directly to the console.
     """
     count = 1
-    for row in range(number):
-        for column in range(row + 1):
-            print(count, end=" ")
-            count += 1
-        print()
+
+    for row in range(1, number + 1):
+        print(*range(count, count + row))
+
+        count += row
 
 
+if __name__ == "__main__":
+    while True:
+        try:
+            user_input = int(input("Enter a number: "))
 
-while True:
-    try:
-        user_input = int(input("Enter a number: "))
+            if user_input <= 0:
+                print("Number must be positive, greater than 0.")
+                continue
 
-        if not user_input:
-            print("Input cannot be empty. Please enter a number")
-            continue
+            break
 
-        if user_input <= 0:
-            print("Number must be positive ,greater than 0")
-            continue
-        
+        except ValueError:
+            print("Invalid input. Please enter a valid integer.")
 
-        break
-        
-    except ValueError:
-        print("Enter Only Number")
-
-
-incremental_number_pattern(user_input)
+    incremental_number_pattern(user_input)
