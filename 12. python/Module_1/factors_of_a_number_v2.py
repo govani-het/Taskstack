@@ -1,5 +1,13 @@
 def factors_of_a_number(number):
+    """
+    Finds all factors of a given number, including negative factors for negative numbers.
 
+    Parameters:
+    number (int): The number to find factors for.
+
+    Returns:
+    list: A sorted list of all factors of the number.
+    """
     if number == 0:
         print("Factors are not defined for zero")
 
