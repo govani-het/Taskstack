@@ -20,7 +20,7 @@ def binary_search(list_of_numbers, number):
     while start <= end:
         mid = (start + end) // 2
         if list_of_numbers[mid] == number:
-            print("Element is present at index " + str(mid))
+            print(f"Element {number} is present at index " + str(mid))
             return
         elif list_of_numbers[mid] < number:
             start = mid + 1
