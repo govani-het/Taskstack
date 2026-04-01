@@ -59,14 +59,15 @@ def delete_blog(id: int, db: Session):
 
 
 def update_blog_partial(id: int, request: BlogUpdate, db: Session):
-    """Partially update one blog entry and return the updated record."""
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
+
     if not blog:
         raise HTTPException(status_code=404, detail="Blog not found")
 
-    data = request.dict(exclude_unset=True)
+    data = request.model_dump(exclude_unset=True)   # ✅ FIX
+
     if not data:
-        raise HTTPException(status_code=400, detail="No data provided for update")
+        raise HTTPException(status_code=400, detail="No data provided")
 
     if "user_id" in data:
         user = db.query(models.User).filter(models.User.id == data["user_id"]).first()
@@ -78,4 +79,3 @@ def update_blog_partial(id: int, request: BlogUpdate, db: Session):
 
     db.commit()
     db.refresh(blog)
-    return blog

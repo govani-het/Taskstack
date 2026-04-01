@@ -7,18 +7,12 @@ from pydantic import BaseModel, EmailStr, Field
 
 #this is blog schemas
 
-class BlogBase(BaseModel):
-    """Shared fields for blog payloads."""
+
+class BlogCreate(BaseModel):
+    """Schema for returning a stored blog record."""
     title: str
     body: str
-
-
-class BlogCreate(BlogBase):
-    """Schema for returning a stored blog record."""
-
-    id: int
     user_id: int
-    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -33,7 +27,7 @@ class BlogUpdate(BaseModel):
 #this is user schemas
 
 class SimpleUser(BaseModel):
-    id: int
+
     name: str
     email: EmailStr
 
