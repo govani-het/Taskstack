@@ -59,6 +59,7 @@ def delete_blog(id: int, db: Session):
 
 
 def update_blog_partial(id: int, request: BlogUpdate, db: Session):
+    """Update only provided fields for a blog and return the refreshed record."""
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
 
     if not blog:

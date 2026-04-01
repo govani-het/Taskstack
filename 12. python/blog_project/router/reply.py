@@ -8,5 +8,5 @@ router = APIRouter(tags=["reply"])
 
 @router.post("/reply/{id}", status_code=status.HTTP_201_CREATED)
 def create_reply(request: schemas.ReplyCreate, db: Session = Depends(get_db)):
+    """Create a reply for a comment."""
     return reply_repository.create_reply(request, db)
-

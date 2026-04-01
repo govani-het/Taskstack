@@ -5,6 +5,7 @@ import models
 
 
 def create_reply(id, request: ReplyCreate, db: Session):
+    """Create and persist a reply for a specific comment."""
     new_reply =models.Reply(
         content=request.content,
         comment_id=id,
@@ -15,4 +16,3 @@ def create_reply(id, request: ReplyCreate, db: Session):
     db.commit()
     db.refresh(new_reply)
     return new_reply
-
