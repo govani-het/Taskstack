@@ -65,7 +65,7 @@ def update_blog_partial(id: int, request: BlogUpdate, db: Session):
     if not blog:
         raise HTTPException(status_code=404, detail="Blog not found")
 
-    data = request.model_dump(exclude_unset=True)   # ✅ FIX
+    data = request.model_dump(exclude_unset=True)   
 
     if not data:
         raise HTTPException(status_code=400, detail="No data provided")
