@@ -13,5 +13,6 @@ def get_current_user(token_data: str = Depends(oauth2_scheme)):
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     return auth_token.verify_token(token_data, credentials_exception)
 

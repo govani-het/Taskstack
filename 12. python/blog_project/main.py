@@ -4,10 +4,7 @@ from fastapi import FastAPI, status
 import models
 from database import engine
 from passlib.context import CryptContext
-from router import blog, user, login, comments, reply
-
-
-
+from router import blog, user, login, comments, reply, user_profile
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -22,8 +19,7 @@ app.include_router(user.router)
 app.include_router(login.router)
 app.include_router(comments.router)
 app.include_router(reply.router)
-
-
+app.include_router(user_profile.router)
 
 
 

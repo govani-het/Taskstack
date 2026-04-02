@@ -17,7 +17,8 @@ class Blog(Base):
 
     creator = relationship("User", back_populates="blogs")
     comments = relationship("Comment", back_populates="blog")
-
+    likes = relationship("Like", back_populates="blog")
+    my_fav = relationship("MyFav", back_populates="blog")
 
 class User(Base):
     """Database model representing an application user."""
@@ -32,7 +33,9 @@ class User(Base):
     blogs = relationship("Blog", back_populates="creator")
     comments = relationship("Comment", back_populates="creator")
     replies = relationship("Reply", back_populates="creator")
-
+    likes = relationship("Like", back_populates="creator")
+    my_fav = relationship("MyFav", back_populates="creator")
+    user_profiles = relationship("UserProfile", back_populates="creator")
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -45,9 +48,7 @@ class Comment(Base):
 
     creator = relationship("User", back_populates="comments")
     blog = relationship("Blog", back_populates="comments")
-    replies = relationship("Reply", back_populates="comment")
-
-
+    replies = relationship("Reply", back_populates="comments")
 
 class Reply(Base):
     __tablename__ = "replies"
@@ -59,4 +60,37 @@ class Reply(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
 
     creator = relationship("User", back_populates="replies")
-    comment = relationship("Comment", back_populates="replies")
+    comments = relationship("Comment", back_populates="replies")
+
+class Like(Base):
+    __tablename__ = "like"
+
+    id = Column(Integer, primary_key=True, index = True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    blog_id = Column(Integer, ForeignKey("blogs.id"))
+
+    creator = relationship("User",back_populates="likes")
+    blog = relationship("Blog", back_populates="likes")
+
+class MyFav(Base):
+
+    __tablename__ = "my_favs"
+
+    id = Column(Integer, primary_key=True, index = True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    blog_id = Column(Integer, ForeignKey("blogs.id"), nullable=False)
+
+    creator = relationship("User",back_populates="my_fav")
+    blog = relationship("Blog", back_populates="my_fav")
+
+class UserProfile(Base):
+
+    __tablename__ = "user_profile"
+
+    id = Column(Integer, primary_key=True, index = True)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    dob = Column(DateTime(timezone=True), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    creator = relationship("User", back_populates="user_profiles")

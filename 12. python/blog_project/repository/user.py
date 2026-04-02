@@ -51,3 +51,22 @@ def delete_user(id: int, db: Session):
 
     db.commit()
     return f"User with id {id} deleted successfully"
+
+
+def my_fav_blog(blog_id:int, db:Session, user_id:int):
+    my_fav = db.query(models.MyFav).filter(models.MyFav.user_id==user_id, models.MyFav.blog_id==blog_id).first()
+    try:
+        if my_fav:
+            db.delete(my_fav)
+            db.commit()
+            return {"message": "Blog removed from saved items"}
+        else:
+            new_fav= models.MyFav(
+                user_id=user_id,
+                blog_id=blog_id
+            )
+            db.add(new_fav)
+            db.commit()
+            return {"message": "Blog saved successfully"}
+    except Exception:
+        raise HTTPException (status_code=404, detail="Blog Not Found")
