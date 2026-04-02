@@ -9,7 +9,15 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def create_access_token(data: dict):
-    """Generate a signed JWT access token with an expiration claim."""
+    """
+        Handles the create access token operation.
+        
+        Parameters:
+        data (dict): The data value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
@@ -18,7 +26,16 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 def verify_token(token: str, credentials_exception):
-    """Decode and validate a JWT token, returning token payload data."""
+    """
+        Handles the verify token operation.
+        
+        Parameters:
+        token (str): The token value used by this function.
+        credentials exception (Any): The credentials exception value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")

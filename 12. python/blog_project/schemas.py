@@ -1,4 +1,12 @@
-"""Pydantic schemas used for request validation and response serialization."""
+"""
+    Defines the schemas module.
+    
+    Parameters:
+    None (None): This module does not accept parameters.
+    
+    Returns:
+    None: This module does not return a value.
+"""
 
 from datetime import datetime,date
 from typing import List, Optional
@@ -7,6 +15,15 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 def _validate_dob_age_range(value: date):
+    """
+        Handles the validate dob age range operation.
+        
+        Parameters:
+        value (date): The value value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     today = date.today()
     age = today.year - value.year - ((today.month, today.day) < (value.month, value.day))
 
@@ -16,6 +33,15 @@ def _validate_dob_age_range(value: date):
     return value
 
 def validate_name(value:str):
+    """
+        Handles the validate name operation.
+        
+        Parameters:
+        value (str): The value value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     value = value.strip()
     if not value:
         raise ValueError("Name cannot be empty")
@@ -28,7 +54,15 @@ def validate_name(value:str):
 
 #this is blog schemas
 class BlogCreate(BaseModel):
-    """Schema for returning a stored blog record."""
+    """
+        Represents the BlogCreate class.
+        
+        Parameters:
+        None (None): This class definition does not accept runtime parameters.
+        
+        Returns:
+        None: This class definition does not return a value.
+    """
     title: str
     body: str
 
@@ -36,7 +70,15 @@ class BlogCreate(BaseModel):
         from_attributes = True
 
 class BlogUpdate(BaseModel):
-    """Schema for partial updates on blog fields."""
+    """
+        Represents the BlogUpdate class.
+        
+        Parameters:
+        None (None): This class definition does not accept runtime parameters.
+        
+        Returns:
+        None: This class definition does not return a value.
+    """
 
     title: Optional[str] = None
     body: Optional[str] = None
@@ -52,7 +94,15 @@ class SimpleUser(BaseModel):
         from_attributes = True
 
 class ShowUser(BaseModel):
-    """Schema used when returning user details with nested blogs."""
+    """
+        Represents the ShowUser class.
+        
+        Parameters:
+        None (None): This class definition does not accept runtime parameters.
+        
+        Returns:
+        None: This class definition does not return a value.
+    """
 
     name: str
     email: EmailStr
@@ -62,7 +112,15 @@ class ShowUser(BaseModel):
         from_attributes = True
 
 class UserCreate(BaseModel):
-    """Schema for creating a user."""
+    """
+        Represents the UserCreate class.
+        
+        Parameters:
+        None (None): This class definition does not accept runtime parameters.
+        
+        Returns:
+        None: This class definition does not return a value.
+    """
 
     name: str
     email: EmailStr
@@ -71,10 +129,27 @@ class UserCreate(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_user_name(cls, value: str) -> str:
+        """
+            Handles the validate user name operation.
+            
+            Parameters:
+            value (str): The value value used by this function.
+            
+            Returns:
+            str: The result produced by this function.
+        """
         return validate_name(value)
 
 class User(BaseModel):
-    """Schema for returning a stored user."""
+    """
+        Represents the User class.
+        
+        Parameters:
+        None (None): This class definition does not accept runtime parameters.
+        
+        Returns:
+        None: This class definition does not return a value.
+    """
 
     id: int
     name: str
@@ -141,16 +216,43 @@ class UserProfile(BaseModel):
     @field_validator("first_name")
     @classmethod
     def validate_first_name(cls, value: str) -> str:
+        """
+            Handles the validate first name operation.
+            
+            Parameters:
+            value (str): The value value used by this function.
+            
+            Returns:
+            str: The result produced by this function.
+        """
         return validate_name(value)
 
     @field_validator("last_name")
     @classmethod
     def validate_last_name(cls, value: str) -> str:
+        """
+            Handles the validate last name operation.
+            
+            Parameters:
+            value (str): The value value used by this function.
+            
+            Returns:
+            str: The result produced by this function.
+        """
         return validate_name(value)
 
     @field_validator("dob")
     @classmethod
     def validate_dob(cls, value: date) -> date:
+        """
+            Handles the validate dob operation.
+            
+            Parameters:
+            value (date): The value value used by this function.
+            
+            Returns:
+            date: The result produced by this function.
+        """
         return _validate_dob_age_range(value)
 
     class Config:
@@ -165,6 +267,15 @@ class UserProfileUpdate(BaseModel):
     @field_validator("first_name")
     @classmethod
     def validate_first_name(cls, value: Optional[str]) -> Optional[str]:
+        """
+            Handles the validate first name operation.
+            
+            Parameters:
+            value (Optional str): The value value used by this function.
+            
+            Returns:
+            Optional str: The result produced by this function.
+        """
         if value is None:
             return value
         return validate_name(value)
@@ -172,6 +283,15 @@ class UserProfileUpdate(BaseModel):
     @field_validator("last_name")
     @classmethod
     def validate_last_name(cls, value: Optional[str]) -> Optional[str]:
+        """
+            Handles the validate last name operation.
+            
+            Parameters:
+            value (Optional str): The value value used by this function.
+            
+            Returns:
+            Optional str: The result produced by this function.
+        """
         if value is None:
             return value
         return validate_name(value)
@@ -179,6 +299,15 @@ class UserProfileUpdate(BaseModel):
     @field_validator("dob")
     @classmethod
     def validate_dob(cls, value: Optional[date]) -> Optional[date]:
+        """
+            Handles the validate dob operation.
+            
+            Parameters:
+            value (Optional date): The value value used by this function.
+            
+            Returns:
+            Optional date: The result produced by this function.
+        """
         if value is None:
             return value
 
@@ -212,7 +341,15 @@ class ShowMyFavBlog(BaseModel):
 #----------------------------
 
 class ShowBlog(BaseModel):
-    """Schema used when returning a blog with its creator information."""
+    """
+        Represents the ShowBlog class.
+        
+        Parameters:
+        None (None): This class definition does not accept runtime parameters.
+        
+        Returns:
+        None: This class definition does not return a value.
+    """
 
     title: str
     body: str

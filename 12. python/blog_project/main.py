@@ -1,4 +1,12 @@
-"""Application entrypoint that mounts routers and exposes base endpoints."""
+"""
+    Defines the main module.
+    
+    Parameters:
+    None (None): This module does not accept parameters.
+    
+    Returns:
+    None: This module does not return a value.
+"""
 
 from fastapi import FastAPI, status
 import models
@@ -25,5 +33,13 @@ app.include_router(user_profile.router)
 
 @app.get("/", status_code=status.HTTP_200_OK)
 def index():
-    """Health-check style root endpoint."""
+    """
+        Handles the index operation.
+        
+        Parameters:
+        None (None): This function does not require parameters.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     return {"message": "Hello World"}

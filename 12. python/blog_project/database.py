@@ -1,4 +1,12 @@
-"""Database configuration and session utilities for the FastAPI app."""
+"""
+    Defines the database module.
+    
+    Parameters:
+    None (None): This module does not accept parameters.
+    
+    Returns:
+    None: This module does not return a value.
+"""
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -13,7 +21,15 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
-    """Provide a SQLAlchemy session for request handling and close it safely."""
+    """
+        Handles the get db operation.
+        
+        Parameters:
+        None (None): This function does not require parameters.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     db = SessionLocal()
     try:
         yield db

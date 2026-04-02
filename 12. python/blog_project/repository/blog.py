@@ -1,4 +1,12 @@
-"""Database operations for blog endpoints."""
+"""
+    Defines the blog module.
+    
+    Parameters:
+    None (None): This module does not accept parameters.
+    
+    Returns:
+    None: This module does not return a value.
+"""
 
 from fastapi import HTTPException
 from sqlalchemy import or_
@@ -9,7 +17,17 @@ from schemas import BlogCreate, BlogUpdate, TokenData
 
 
 def create_blog(request: BlogCreate, db: Session, user_id:int):
-    """Create and return a new blog entry."""
+    """
+        Handles the create blog operation.
+        
+        Parameters:
+        request (BlogCreate): The request value used by this function.
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     if user_id is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -27,10 +45,20 @@ def create_blog(request: BlogCreate, db: Session, user_id:int):
     db.refresh(new_blog)
     return new_blog
 
-
 def get_all_blogs(db: Session):
-    """Fetch and return all blog entries."""
+    """
+        Handles the get all blogs operation.
+        
+        Parameters:
+        db (Session): The db value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     blogs = db.query(models.Blog).all()
+
+    if not blogs:
+        raise HTTPException(status_code=404, detail="Blog not found")
 
     for blog in blogs:
         if blog.comments:
@@ -42,9 +70,17 @@ def get_all_blogs(db: Session):
 
     return blogs 
 
-
 def search_blogs(db: Session, search: str):
-    """Fetch and return blogs matching search text in title or body."""
+    """
+        Handles the search blogs operation.
+        
+        Parameters:
+        db (Session): The db value used by this function.
+        search (str): The search value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     search_value = search.strip()
     if not search_value:
         raise HTTPException(status_code=400, detail="Search text is required")
@@ -56,6 +92,9 @@ def search_blogs(db: Session, search: str):
         )
     ).all()
 
+    if not blogs:
+        raise HTTPException(status_code=404, detail="Blog not found")
+
     for blog in blogs:
         if blog.comments:
             blog.comments = sorted(
@@ -66,18 +105,35 @@ def search_blogs(db: Session, search: str):
 
     return blogs
 
-
 def get_blog(id: int, db: Session):
-    """Fetch and return one blog by id."""
+    """
+        Handles the get blog operation.
+        
+        Parameters:
+        id (int): The id value used by this function.
+        db (Session): The db value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
         raise HTTPException(status_code=404, detail="Blog not found")
 
     return blog
 
-
 def delete_blog(id: int, db: Session, current_user: TokenData):
-    """Delete one blog by id and return a confirmation message."""
+    """
+        Handles the delete blog operation.
+        
+        Parameters:
+        id (int): The id value used by this function.
+        db (Session): The db value used by this function.
+        current user (TokenData): The current user value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
         raise HTTPException(status_code=404, detail="Blog not found")
@@ -92,10 +148,20 @@ def delete_blog(id: int, db: Session, current_user: TokenData):
     db.commit()
     return f"Blog with id {id} deleted successfully"
 
-
 def update_blog_partial(id: int, request: BlogUpdate, db: Session, current_user: TokenData):
 
-    """Update only provided fields for a blog and return the refreshed record."""
+    """
+        Handles the update blog partial operation.
+        
+        Parameters:
+        id (int): The id value used by this function.
+        request (BlogUpdate): The request value used by this function.
+        db (Session): The db value used by this function.
+        current user (TokenData): The current user value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
 
     if not blog:
@@ -119,8 +185,18 @@ def update_blog_partial(id: int, request: BlogUpdate, db: Session, current_user:
     db.refresh(blog)
     return blog
 
-
 def like_blog(blog_id: int, db: Session, user_id:int):
+    """
+        Handles the like blog operation.
+        
+        Parameters:
+        blog id (int): The blog id value used by this function.
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     like = db.query(models.Like).filter(models.Like.user_id == user_id, models.Like.blog_id == blog_id).first()
 
     if like:
@@ -138,10 +214,18 @@ def like_blog(blog_id: int, db: Session, user_id:int):
         return {"message": "Blog liked successfully"}
     
 def sort_blog(db):
+    """
+        Handles the sort blog operation.
         
+        Parameters:
+        db (Any): The db value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     blog = db.query(models.Blog).order_by(models.Blog.created_at.desc()).all()
 
     if not blog:
-        return {"Error": "Blog Not Found"}
+        raise HTTPException(status_code=404, detail="Blog not found")
     
     return blog

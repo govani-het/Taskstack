@@ -6,7 +6,18 @@ import models
 
 
 def create_reply(id: int, request: ReplyCreate, db: Session, current_user: TokenData):
-    """Create and persist a reply for a specific comment."""
+    """
+        Handles the create reply operation.
+        
+        Parameters:
+        id (int): The id value used by this function.
+        request (ReplyCreate): The request value used by this function.
+        db (Session): The db value used by this function.
+        current user (TokenData): The current user value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     if current_user.user_id is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 

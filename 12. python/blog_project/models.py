@@ -1,11 +1,27 @@
-"""SQLAlchemy ORM models for blogs and users."""
+"""
+    Defines the models module.
+    
+    Parameters:
+    None (None): This module does not accept parameters.
+    
+    Returns:
+    None: This module does not return a value.
+"""
 
 from database import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 
 class Blog(Base):
-    """Database model representing a blog post."""
+    """
+        Represents the Blog class.
+        
+        Parameters:
+        None (None): This class definition does not accept runtime parameters.
+        
+        Returns:
+        None: This class definition does not return a value.
+    """
 
     __tablename__ = "blogs"
 
@@ -21,7 +37,15 @@ class Blog(Base):
     my_fav = relationship("MyFav", back_populates="blog")
 
 class User(Base):
-    """Database model representing an application user."""
+    """
+        Represents the User class.
+        
+        Parameters:
+        None (None): This class definition does not accept runtime parameters.
+        
+        Returns:
+        None: This class definition does not return a value.
+    """
 
     __tablename__ = "users"
 

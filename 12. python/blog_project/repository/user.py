@@ -1,4 +1,4 @@
-"""Database operations for user endpoints."""
+
 
 from fastapi import HTTPException
 from passlib.context import CryptContext
@@ -11,7 +11,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def create_user(request: UserCreate, db: Session):
-    """Create and return a user with hashed password."""
+    """
+        Handles the create user operation.
+        
+        Parameters:
+        request (UserCreate): The request value used by this function.
+        db (Session): The db value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     existing_user = db.query(models.User).filter(models.User.email == request.email).first()
     if existing_user:
         raise HTTPException(status_code=409, detail="Email already registered")
@@ -30,12 +39,35 @@ def create_user(request: UserCreate, db: Session):
 
 
 def get_all_users(db: Session):
-    """Fetch and return all users."""
-    return db.query(models.User).all()
+    """
+        Handles the get all users operation.
+        
+        Parameters:
+        db (Session): The db value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
+
+    users = db.query(models.User).all()
+
+    if not users:
+        raise HTTPException(status_code=404, detail="User Not Found")
+
+    return users
 
 
 def get_user_by_id(id: int, db: Session):
-    """Fetch and return one user by id."""
+    """
+        Handles the get user by id operation.
+        
+        Parameters:
+        id (int): The id value used by this function.
+        db (Session): The db value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -44,7 +76,16 @@ def get_user_by_id(id: int, db: Session):
 
 
 def delete_user(id: int, db: Session):
-    """Delete one user by id and return a confirmation message."""
+    """
+        Handles the delete user operation.
+        
+        Parameters:
+        id (int): The id value used by this function.
+        db (Session): The db value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     user = db.query(models.User).filter(models.User.id == id).delete(synchronize_session=False)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -54,6 +95,17 @@ def delete_user(id: int, db: Session):
 
 
 def my_fav_blog(blog_id:int, db:Session, user_id:int):
+    """
+        Handles the my fav blog operation.
+        
+        Parameters:
+        blog id (int): The blog id value used by this function.
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     my_fav = db.query(models.MyFav).filter(models.MyFav.user_id==user_id, models.MyFav.blog_id==blog_id).first()
     try:
         if my_fav:

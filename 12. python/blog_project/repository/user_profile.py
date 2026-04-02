@@ -7,6 +7,17 @@ import schemas
 
 
 def create_profile(request: schemas.UserProfile, db: Session, user_id: int):
+    """
+        Handles the create profile operation.
+        
+        Parameters:
+        request (schemas UserProfile): The request value used by this function.
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     if user_id is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -26,6 +37,17 @@ def create_profile(request: schemas.UserProfile, db: Session, user_id: int):
     return {"message": "Profile Created Successfully"}
 
 def update_profile(request: schemas.UserProfileUpdate, db: Session, user_id: int):
+    """
+        Handles the update profile operation.
+        
+        Parameters:
+        request (schemas UserProfileUpdate): The request value used by this function.
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     if user_id is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -45,16 +67,53 @@ def update_profile(request: schemas.UserProfileUpdate, db: Session, user_id: int
     return {"message": "Profile Updated Successfully", "profile": profile}
 
 def delete_profile(db: Session, user_id: int):
+    """
+        Handles the delete profile operation.
+        
+        Parameters:
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     user_profile = db.query(models.UserProfile).filter(models.UserProfile.user_id==user_id).first()
     db.delete(user_profile)
     db.commit()
     return {"message": "Profile Deleted Successfully"}
 
 def show_profile(db: Session, user_id: int):
-    
-    return db.query(models.UserProfile).filter(models.UserProfile.user_id==user_id).first()
+    """
+        Handles the show profile operation.
+        
+        Parameters:
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
+
+    user_profile = db.query(models.UserProfile).filter(models.UserProfile.user_id==user_id).first()
+
+    if not user_profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    return user_profile
 
 def show_my_blog(page_no,limit,db: Session, user_id: int):
+    """
+        Handles the show my blog operation.
+        
+        Parameters:
+        page no (Any): The page no value used by this function.
+        limit (Any): The limit value used by this function.
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     skip = (int(page_no) - 1) * int(limit)
 
     blogs = (
@@ -71,6 +130,9 @@ def show_my_blog(page_no,limit,db: Session, user_id: int):
         .order_by(models.Blog.created_at.desc()).offset(skip).limit(limit)
         .all()
     )
+
+    if not blogs:
+        raise HTTPException(status_code=404, detail="Blog not found")
 
     result = []
     for blog, total_like_count in blogs:
@@ -117,5 +179,23 @@ def show_my_blog(page_no,limit,db: Session, user_id: int):
     return result
 
 def show_my_fav_blog(page_no,limit,db:Session, user_id: int):
+    """
+        Handles the show my fav blog operation.
+        
+        Parameters:
+        page no (Any): The page no value used by this function.
+        limit (Any): The limit value used by this function.
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     skip = (int(page_no) - 1) * int(limit)
-    return db.query(models.MyFav).filter(models.MyFav.user_id==user_id).offset(skip).limit(limit).all()
+
+    fav_blog = db.query(models.MyFav).filter(models.MyFav.user_id==user_id).offset(skip).limit(limit).all()
+
+    if not fav_blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+
+    return fav_blog

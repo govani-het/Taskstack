@@ -14,5 +14,16 @@ def create_reply(
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(oauth2.get_current_user),
 ):
-    """Create a reply for a comment."""
+    """
+        Handles the create reply operation.
+        
+        Parameters:
+        comment id (int): The comment id value used by this function.
+        request (schemas ReplyCreate): The request value used by this function.
+        db (Session): The db value used by this function.
+        current user (schemas TokenData): The current user value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     return reply_repository.create_reply(comment_id, request, db, current_user)

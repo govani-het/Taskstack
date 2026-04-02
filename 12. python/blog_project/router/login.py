@@ -16,7 +16,16 @@ router = APIRouter(tags=["login"])
 
 @router.post("/login")
 def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    """Authenticate a user and return a bearer access token."""
+    """
+        Handles the login operation.
+        
+        Parameters:
+        request (OAuth2PasswordRequestForm): The request value used by this function.
+        db (Session): The db value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     user = db.query(models.User).filter(models.User.email == request.username).first()
     
     if not user:
