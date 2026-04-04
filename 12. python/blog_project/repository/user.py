@@ -21,9 +21,9 @@ def create_user(request: UserCreate, db: Session):
         Returns:
         Any: The result produced by this function.
     """
-    existing_user = db.query(models.User).filter(models.User.email == request.email).first()
+    existing_user = db.query(models.User).filter(models.User.email == request.email, models.User.name == request.name).first()
     if existing_user:
-        raise HTTPException(status_code=409, detail="Email already registered")
+        raise HTTPException(status_code=409, detail="User already registered")
 
     hashed_password = pwd_context.hash(request.password)
 

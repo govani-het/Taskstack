@@ -1,27 +1,9 @@
-"""
-    Defines the models module.
-    
-    Parameters:
-    None (None): This module does not accept parameters.
-    
-    Returns:
-    None: This module does not return a value.
-"""
 
 from database import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 
 class Blog(Base):
-    """
-        Represents the Blog class.
-        
-        Parameters:
-        None (None): This class definition does not accept runtime parameters.
-        
-        Returns:
-        None: This class definition does not return a value.
-    """
 
     __tablename__ = "blogs"
 
@@ -37,22 +19,13 @@ class Blog(Base):
     my_fav = relationship("MyFav", back_populates="blog")
 
 class User(Base):
-    """
-        Represents the User class.
-        
-        Parameters:
-        None (None): This class definition does not accept runtime parameters.
-        
-        Returns:
-        None: This class definition does not return a value.
-    """
 
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    email = Column(String)
-    password = Column(String)
+    name = Column(String, unique=True, nullable=True)
+    email = Column(String, unique=True, nullable=True)
+    password = Column(String, nullable=True)
 
     blogs = relationship("Blog", back_populates="creator")
     comments = relationship("Comment", back_populates="creator")
@@ -62,6 +35,7 @@ class User(Base):
     user_profiles = relationship("UserProfile", back_populates="creator")
 
 class Comment(Base):
+
     __tablename__ = "comments"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -75,6 +49,7 @@ class Comment(Base):
     replies = relationship("Reply", back_populates="comments")
 
 class Reply(Base):
+    
     __tablename__ = "replies"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -87,6 +62,7 @@ class Reply(Base):
     comments = relationship("Comment", back_populates="replies")
 
 class Like(Base):
+    
     __tablename__ = "like"
 
     id = Column(Integer, primary_key=True, index = True)

@@ -120,3 +120,12 @@ def show_my_fav_blog(
         Any: The result produced by this function.
     """
     return user_profile_repository.show_my_fav_blog(page_no,limit,db,current_user.user_id)
+
+@router.patch("/change_password",status_code=status.HTTP_200_OK)
+def change_password(
+    request:schemas.UserPasswordUpdate,
+    db: Session = Depends(get_db),
+    current_user: schemas.TokenData = Depends(oauth2.get_current_user)
+):
+    return user_profile_repository.change_password(request,db,current_user.user_id)
+  

@@ -1,12 +1,4 @@
-"""
-    Defines the blog module.
-    
-    Parameters:
-    None (None): This module does not accept parameters.
-    
-    Returns:
-    None: This module does not return a value.
-"""
+
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
@@ -164,3 +156,4 @@ def sort_blog(db:Session = Depends(get_db), get_current_user: TokenData = Depend
         Any: The result produced by this function.
     """
     return blog_repository.sort_blog(db)
+

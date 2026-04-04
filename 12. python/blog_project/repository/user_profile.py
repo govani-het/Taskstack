@@ -1,10 +1,12 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 
 import models
 import schemas
+from passlib.context import CryptContext
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_profile(request: schemas.UserProfile, db: Session, user_id: int):
     """
@@ -48,6 +50,7 @@ def update_profile(request: schemas.UserProfileUpdate, db: Session, user_id: int
         Returns:
         Any: The result produced by this function.
     """
+    
     if user_id is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -97,7 +100,7 @@ def show_profile(db: Session, user_id: int):
     user_profile = db.query(models.UserProfile).filter(models.UserProfile.user_id==user_id).first()
 
     if not user_profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=204, detail="Profile not found")
 
     return user_profile
 
@@ -132,7 +135,7 @@ def show_my_blog(page_no,limit,db: Session, user_id: int):
     )
 
     if not blogs:
-        raise HTTPException(status_code=404, detail="Blog not found")
+        raise HTTPException(status_code=204, detail="Blog not found")
 
     result = []
     for blog, total_like_count in blogs:
@@ -178,7 +181,7 @@ def show_my_blog(page_no,limit,db: Session, user_id: int):
 
     return result
 
-def show_my_fav_blog(page_no,limit,db:Session, user_id: int):
+def show_my_fav_blog(page_no, limit, db:Session, user_id: int):
     """
         Handles the show my fav blog operation.
         
@@ -196,6 +199,41 @@ def show_my_fav_blog(page_no,limit,db:Session, user_id: int):
     fav_blog = db.query(models.MyFav).filter(models.MyFav.user_id==user_id).offset(skip).limit(limit).all()
 
     if not fav_blog:
-        raise HTTPException(status_code=404, detail="Blog not found")
+        raise HTTPException(status_code=204, detail="Blog not found")
 
     return fav_blog
+
+def change_password(request: schemas.UserPasswordUpdate, db: Session, user_id: int):
+
+    if request.new_password != request.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password and confirm password do not match",
+        )
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Account Not Found")
+    
+    if not pwd_context.verify(request.current_password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password does not match",
+        )
+
+    if request.current_password == request.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password cannot be same as current password",
+        )
+
+    user.password = pwd_context.hash(request.new_password)
+
+    db.commit()
+    db.refresh(user)
+
+    return {"message":"Password Changed Successfully"}
