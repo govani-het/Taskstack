@@ -61,8 +61,8 @@ def show_user_by_id(id: int, db: Session = Depends(get_db), current_user: schema
     return user_repository.get_user_by_id(id, db)
 
 
-@router.delete("/delete_user/{id}", status_code=status.HTTP_200_OK)
-def delete_user(id: int, db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
+@router.delete("/delete_user", status_code=status.HTTP_200_OK)
+def delete_user(db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
     """
         Handles the delete user operation.
         
@@ -74,7 +74,7 @@ def delete_user(id: int, db: Session = Depends(get_db), current_user: schemas.To
         Returns:
         Any: The result produced by this function.
     """
-    return user_repository.delete_user(id, db)
+    return user_repository.delete_user(current_user.user_id, db)
 
 @router.post('/my_fav/{id}', status_code=status.HTTP_200_OK)
 def my_fav_blog(id: int, db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):

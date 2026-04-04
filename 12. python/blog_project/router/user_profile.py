@@ -127,5 +127,16 @@ def change_password(
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(oauth2.get_current_user)
 ):
+    """
+        Handles the change password operation.
+        
+        Parameters:
+        request (schemas UserPasswordUpdate): The request value used by this function.
+        db (Session): The db value used by this function.
+        current user (schemas TokenData): The current user value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
     return user_profile_repository.change_password(request,db,current_user.user_id)
   

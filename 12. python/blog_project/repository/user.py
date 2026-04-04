@@ -3,7 +3,7 @@
 from fastapi import HTTPException
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-
+import constant
 import models
 from schemas import UserCreate
 
@@ -52,7 +52,7 @@ def get_all_users(db: Session):
     users = db.query(models.User).all()
 
     if not users:
-        raise HTTPException(status_code=404, detail="User Not Found")
+        raise HTTPException(status_code=404, detail=constant.MSG_USER_NOT_FOUND)
 
     return users
 
@@ -70,7 +70,7 @@ def get_user_by_id(id: int, db: Session):
     """
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=constant.MSG_USER_NOT_FOUND)
 
     return user
 
@@ -88,7 +88,7 @@ def delete_user(id: int, db: Session):
     """
     user = db.query(models.User).filter(models.User.id == id).delete(synchronize_session=False)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=constant.MSG_USER_NOT_FOUND)
 
     db.commit()
     return f"User with id {id} deleted successfully"
@@ -121,4 +121,4 @@ def my_fav_blog(blog_id:int, db:Session, user_id:int):
             db.commit()
             return {"message": "Blog saved successfully"}
     except Exception:
-        raise HTTPException (status_code=404, detail="Blog Not Found")
+        raise HTTPException (status_code=404, detail=constant.MSG_BLOG_NOT_FOUND)

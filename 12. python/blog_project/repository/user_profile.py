@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
-
+import constant
 import models
 import schemas
 from passlib.context import CryptContext
@@ -21,7 +21,7 @@ def create_profile(request: schemas.UserProfile, db: Session, user_id: int):
         Any: The result produced by this function.
     """
     if user_id is None:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail=constant.MSG_INVALID_CREDENTIALS)
 
     user = db.query(models.UserProfile).filter(models.UserProfile.user_id == user_id).first()
     if user:
@@ -52,11 +52,11 @@ def update_profile(request: schemas.UserProfileUpdate, db: Session, user_id: int
     """
     
     if user_id is None:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail=constant.MSG_INVALID_CREDENTIALS)
 
     profile = db.query(models.UserProfile).filter(models.UserProfile.user_id == user_id).first()
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        raise HTTPException(status_code=404, detail=constant.MSG_PROFILE_NOT_FOUND)
 
     data = request.model_dump(exclude_unset=True)
     if not data:
@@ -100,7 +100,7 @@ def show_profile(db: Session, user_id: int):
     user_profile = db.query(models.UserProfile).filter(models.UserProfile.user_id==user_id).first()
 
     if not user_profile:
-        raise HTTPException(status_code=204, detail="Profile not found")
+        raise HTTPException(status_code=204, detail=constant.MSG_PROFILE_NOT_FOUND)
 
     return user_profile
 
@@ -126,7 +126,8 @@ def show_my_blog(page_no,limit,db: Session, user_id: int):
         )
         .outerjoin(models.Like, models.Like.blog_id == models.Blog.id)
         .options(
-            selectinload(models.Blog.comments).selectinload(models.Comment.replies)
+            selectinload(models.Blog.comments).selectinload(models.Comment.replies),
+            selectinload(models.Blog.images),
         )
         .filter(models.Blog.user_id == user_id)
         .group_by(models.Blog.id)
@@ -135,7 +136,7 @@ def show_my_blog(page_no,limit,db: Session, user_id: int):
     )
 
     if not blogs:
-        raise HTTPException(status_code=204, detail="Blog not found")
+        raise HTTPException(status_code=204, detail=constant.MSG_BLOG_NOT_FOUND)
 
     result = []
     for blog, total_like_count in blogs:
@@ -175,6 +176,10 @@ def show_my_blog(page_no,limit,db: Session, user_id: int):
                 "body": blog.body,
                 "created_at": blog.created_at,
                 "total_like_count": total_like_count,
+                "images": [
+                    {"image_url": image.image_url}
+                    for image in blog.images
+                ],
                 "comments": comments_data,
             }
         )
@@ -199,11 +204,22 @@ def show_my_fav_blog(page_no, limit, db:Session, user_id: int):
     fav_blog = db.query(models.MyFav).filter(models.MyFav.user_id==user_id).offset(skip).limit(limit).all()
 
     if not fav_blog:
-        raise HTTPException(status_code=204, detail="Blog not found")
+        raise HTTPException(status_code=204, detail=constant.MSG_BLOG_NOT_FOUND)
 
     return fav_blog
 
 def change_password(request: schemas.UserPasswordUpdate, db: Session, user_id: int):
+    """
+        Handles the change password operation.
+        
+        Parameters:
+        request (schemas UserPasswordUpdate): The request value used by this function.
+        db (Session): The db value used by this function.
+        user id (int): The user id value used by this function.
+        
+        Returns:
+        Any: The result produced by this function.
+    """
 
     if request.new_password != request.confirm_password:
         raise HTTPException(
@@ -212,7 +228,7 @@ def change_password(request: schemas.UserPasswordUpdate, db: Session, user_id: i
         )
 
     if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail=constant.MSG_INVALID_CREDENTIALS)
 
     user = db.query(models.User).filter(models.User.id == user_id).first()
 
