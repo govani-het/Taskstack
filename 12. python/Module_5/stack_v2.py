@@ -1,20 +1,52 @@
 class Stack:
-    """Represent a basic stack using a Python list."""
+    """
+        Represents a stack data structure.
+
+        Parameters:
+        capacity (int): Maximum number of elements allowed in the stack.
+
+        Returns:
+        None
+    """
 
     def __init__(self, capacity):
-        """Initialize the stack with the given maximum size."""
+        """
+            Initializes a stack instance.
+
+            Parameters:
+            capacity (int): Maximum size of stack.
+
+            Returns:
+            None
+        """
         self.items = []
         self.capacity = capacity
 
     def push(self, item):
-        """Insert a value at the top of the stack."""
+        """
+            Inserts an element at the top of the stack.
+
+            Parameters:
+            item (Any): Value to push into stack.
+
+            Returns:
+            None
+        """
         if self.is_full():
             print("Stack is Full")
         else:
             self.items += [item]
 
     def pop(self):
-        """Remove and return the top value from the stack."""
+        """
+            Removes and returns the top element of the stack.
+
+            Parameters:
+            None
+
+            Returns:
+            Any | None: The removed top element, or None when stack is empty.
+        """
         if self.is_empty():
             print("Stack is Empty")
             return None
@@ -25,40 +57,70 @@ class Stack:
         return popped_value
 
     def peek(self):
-        """Display the value at the top of the stack."""
+        """
+            Displays the current top element.
+
+            Parameters:
+            None
+
+            Returns:
+            None
+        """
         if self.is_empty():
             print("Stack is Empty")
         else:
             print(self.items[-1])
 
     def display(self):
-        """Display the current stack contents."""
+        """
+            Displays all current stack elements.
+
+            Parameters:
+            None
+
+            Returns:
+            None
+        """
         if self.is_empty():
             print("Stack is Empty")
         else:
             print(self.items)
 
     def is_empty(self):
-        """Return True when the stack has no elements."""
+        """
+            Checks whether the stack has no elements.
+
+            Parameters:
+            None
+
+            Returns:
+            bool: True when stack is empty, else False.
+        """
         return len(self.items) == 0
 
     def is_full(self):
-        """Return True when the stack has reached its maximum size."""
+        """
+            Checks whether the stack reached maximum capacity.
+
+            Parameters:
+            None
+
+            Returns:
+            bool: True when stack is full, else False.
+        """
         return len(self.items) == self.capacity
 
 
-def parse_input_value(raw_value):
-    """Convert numeric text to number, otherwise keep as string."""
-    try:
-        if "." in raw_value:
-            return float(raw_value)
-        return int(raw_value)
-    except ValueError:
-        return raw_value
-
-
 def create_stack():
-    """Read stack size and create a stack instance."""
+    """
+        Reads stack size from user and creates stack object.
+
+        Parameters:
+        None
+
+        Returns:
+        Stack: Created stack instance.
+    """
     while True:
         try:
             stack_size = int(input("Enter size of stack:- "))
@@ -71,7 +133,15 @@ def create_stack():
 
 
 def handle_stack_operations(stack):
-    """Handle stack menu operations."""
+    """
+        Handles stack menu operations.
+
+        Parameters:
+        stack (Stack): Stack instance used for operations.
+
+        Returns:
+        None
+    """
     should_continue = True
 
     while should_continue:
@@ -88,7 +158,13 @@ def handle_stack_operations(stack):
 
             if menu_choice == 1:
                 raw_item = input("Enter value to Push:- ")
-                item = parse_input_value(raw_item)
+                try:
+                    if "." in raw_item:
+                        item = float(raw_item)
+                    else:
+                        item = int(raw_item)
+                except ValueError:
+                    item = raw_item
                 stack.push(item)
 
             elif menu_choice == 2:
@@ -116,14 +192,8 @@ def handle_stack_operations(stack):
             print("Please Enter Valid Input")
         except Exception as error:
             print(f"Error: {error}")
-def main():
-    """Program entry point."""
-    stack = create_stack()
-    handle_stack_operations(stack)
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as error:
-        print(f"Unexpected error: {error}")
+    stack = create_stack()
+    handle_stack_operations(stack)

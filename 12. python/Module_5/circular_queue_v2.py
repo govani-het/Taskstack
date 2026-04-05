@@ -1,15 +1,39 @@
 class CircularQueue:
-    """Represent a circular queue using a fixed-size list."""
+    """
+        Represents a circular queue data structure.
+
+        Parameters:
+        queue_size (int): Maximum number of elements queue can hold.
+
+        Returns:
+        None
+    """
 
     def __init__(self, queue_size):
-        """Initialize the circular queue with the given maximum size."""
+        """
+            Initializes a circular queue instance.
+
+            Parameters:
+            queue_size (int): Maximum capacity of circular queue.
+
+            Returns:
+            None
+        """
         self.queue = [None] * queue_size
         self.queue_size = queue_size
         self.front_pos = -1
         self.rear_pos = -1
 
     def enqueue(self, value):
-        """Insert a value at the rear of the circular queue."""
+        """
+            Inserts an element at rear of circular queue.
+
+            Parameters:
+            value (Any): Value to enqueue.
+
+            Returns:
+            None
+        """
         if self.is_full():
             print("Circular Queue is Full")
         elif self.is_empty():
@@ -21,7 +45,15 @@ class CircularQueue:
             self.queue[self.rear_pos] = value
 
     def dequeue(self):
-        """Remove and display the value at the front of the circular queue."""
+        """
+            Removes and returns front element from circular queue.
+
+            Parameters:
+            None
+
+            Returns:
+            Any | None: Removed front value, or None when queue is empty.
+        """
         if self.is_empty():
             print("Circular Queue is Empty")
             return None
@@ -39,21 +71,45 @@ class CircularQueue:
         return value
 
     def front(self):
-        """Display the front value of the circular queue."""
+        """
+            Displays front element of circular queue.
+
+            Parameters:
+            None
+
+            Returns:
+            None
+        """
         if self.is_empty():
             print("Circular Queue is Empty")
         else:
             print(self.queue[self.front_pos])
 
     def rear(self):
-        """Display the rear value of the circular queue."""
+        """
+            Displays rear element of circular queue.
+
+            Parameters:
+            None
+
+            Returns:
+            None
+        """
         if self.is_empty():
             print("Circular Queue is Empty")
         else:
             print(self.queue[self.rear_pos])
 
     def display(self):
-        """Display active circular queue elements in logical order."""
+        """
+            Displays active elements in logical circular order.
+
+            Parameters:
+            None
+
+            Returns:
+            None
+        """
         if self.is_empty():
             print("Circular Queue is Empty")
             return
@@ -70,26 +126,40 @@ class CircularQueue:
         print(elements)
 
     def is_empty(self):
-        """Return True when the circular queue has no elements."""
+        """
+            Checks whether circular queue is empty.
+
+            Parameters:
+            None
+
+            Returns:
+            bool: True when empty, else False.
+        """
         return self.front_pos == -1
 
     def is_full(self):
-        """Return True when the circular queue has reached its capacity."""
+        """
+            Checks whether circular queue is full.
+
+            Parameters:
+            None
+
+            Returns:
+            bool: True when full, else False.
+        """
         return (self.rear_pos + 1) % self.queue_size == self.front_pos
 
 
-def parse_input_value(raw_value):
-    """Convert numeric text to number, otherwise keep as string."""
-    try:
-        if "." in raw_value:
-            return float(raw_value)
-        return int(raw_value)
-    except ValueError:
-        return raw_value
-
-
 def create_circular_queue():
-    """Read circular queue size and create an instance."""
+    """
+        Reads circular queue size from user and creates object.
+
+        Parameters:
+        None
+
+        Returns:
+        CircularQueue: Created circular queue instance.
+    """
     while True:
         try:
             queue_size = int(input("Enter size of circular queue:- "))
@@ -102,7 +172,15 @@ def create_circular_queue():
 
 
 def handle_circular_queue_operations(circular_queue):
-    """Handle circular queue menu operations."""
+    """
+        Handles circular queue menu operations.
+
+        Parameters:
+        circular_queue (CircularQueue): Circular queue instance.
+
+        Returns:
+        None
+    """
     should_continue = True
 
     while should_continue:
@@ -121,7 +199,13 @@ def handle_circular_queue_operations(circular_queue):
 
             if menu_choice == 1:
                 raw_item = input("Enter value to Enqueue:- ")
-                item = parse_input_value(raw_item)
+                try:
+                    if "." in raw_item:
+                        item = float(raw_item)
+                    else:
+                        item = int(raw_item)
+                except ValueError:
+                    item = raw_item
                 circular_queue.enqueue(item)
 
             elif menu_choice == 2:
@@ -160,14 +244,6 @@ def handle_circular_queue_operations(circular_queue):
             print(f"Error: {error}")
 
 
-def main():
-    """Program entry point."""
+if __name__ == "__main__":
     circular_queue = create_circular_queue()
     handle_circular_queue_operations(circular_queue)
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as error:
-        print(f"Unexpected error: {error}")

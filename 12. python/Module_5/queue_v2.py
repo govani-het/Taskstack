@@ -1,15 +1,39 @@
 class Queue:
-    """Represent a basic queue using a Python list."""
+    """
+        Represents a linear queue data structure.
+
+        Parameters:
+        queue_size (int): Maximum number of elements queue can hold.
+
+        Returns:
+        None
+    """
 
     def __init__(self, queue_size):
-        """Initialize the queue with the given maximum size."""
+        """
+            Initializes a queue instance.
+
+            Parameters:
+            queue_size (int): Maximum capacity of queue.
+
+            Returns:
+            None
+        """
         self.items = []
         self.front_index = -1
         self.rear_index = -1
         self.capacity = queue_size
 
     def enqueue(self, item):
-        """Insert a value at the rear of the queue."""
+        """
+            Inserts an element at the rear of queue.
+
+            Parameters:
+            item (Any): Value to enqueue.
+
+            Returns:
+            None
+        """
         if self.is_full():
             print("Queue is full")
         else:
@@ -22,13 +46,29 @@ class Queue:
                 self.rear_index += 1
 
     def is_empty(self):
-        """Return True when the queue has no active elements."""
+        """
+            Checks whether queue has active elements.
+
+            Parameters:
+            None
+
+            Returns:
+            bool: True when empty, else False.
+        """
         if self.front_index == -1:
             return True
         return self.front_index > self.rear_index
 
     def dequeue(self):
-        """Remove and return the value at the front of the queue."""
+        """
+            Removes and returns front element from queue.
+
+            Parameters:
+            None
+
+            Returns:
+            Any | None: Removed front element, or None when queue is empty.
+        """
         if self.is_empty():
             print("Queue is empty")
             return None
@@ -40,36 +80,58 @@ class Queue:
         return dequeued_value
 
     def peek(self):
-        """Display the value at the front of the queue."""
+        """
+            Displays current front element.
+
+            Parameters:
+            None
+
+            Returns:
+            None
+        """
         if self.is_empty():
             print("Queue is empty")
         else:
             print(self.items[self.front_index])
 
     def display_queue(self):
-        """Display the current active queue contents."""
+        """
+            Displays all active queue elements.
+
+            Parameters:
+            None
+
+            Returns:
+            None
+        """
         if self.is_empty():
             print("Queue is empty")
         else:
             print(self.items[self.front_index:self.rear_index + 1])
 
     def is_full(self):
-        """Return True when the queue has reached its maximum size."""
+        """
+            Checks whether queue reached capacity.
+
+            Parameters:
+            None
+
+            Returns:
+            bool: True when full, else False.
+        """
         return self.rear_index == self.capacity - 1
 
 
-def parse_input_value(raw_value):
-    """Convert numeric text to number, otherwise keep as string."""
-    try:
-        if "." in raw_value:
-            return float(raw_value)
-        return int(raw_value)
-    except ValueError:
-        return raw_value
-
-
 def create_queue():
-    """Read queue size and create a queue instance."""
+    """
+        Reads queue size from user and creates queue object.
+
+        Parameters:
+        None
+
+        Returns:
+        Queue: Created queue instance.
+    """
     while True:
         try:
             queue_size = int(input("Enter size of queue:- "))
@@ -82,7 +144,15 @@ def create_queue():
 
 
 def handle_queue_operations(queue):
-    """Handle queue menu operations."""
+    """
+        Handles queue menu operations.
+
+        Parameters:
+        queue (Queue): Queue instance used for operations.
+
+        Returns:
+        None
+    """
     should_continue = True
 
     while should_continue:
@@ -99,7 +169,13 @@ def handle_queue_operations(queue):
 
             if menu_choice == 1:
                 raw_item = input("Enter value to Enqueue:- ")
-                item = parse_input_value(raw_item)
+                try:
+                    if "." in raw_item:
+                        item = float(raw_item)
+                    else:
+                        item = int(raw_item)
+                except ValueError:
+                    item = raw_item
                 queue.enqueue(item)
 
             elif menu_choice == 2:
@@ -129,14 +205,7 @@ def handle_queue_operations(queue):
             print(f"Error: {error}")
 
 
-def main():
-    """Program entry point."""
-    queue = create_queue()
-    handle_queue_operations(queue)
-
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as error:
-        print(f"Unexpected error: {error}")
+    queue = create_queue()
+    handle_queue_operations(queue)
