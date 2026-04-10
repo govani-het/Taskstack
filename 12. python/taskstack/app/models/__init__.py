@@ -1,4 +1,5 @@
 from .comment import Comment
+from .model_columns import ModelColumns
 from .organization import Organization
 from .project_member import ProjectMember
 from .reply import Reply
@@ -20,4 +21,5 @@ __all__ = [
     "Comment",
     "Reply",
     "WorkLog",
+    "ModelColumns",
 ]

@@ -9,11 +9,11 @@ from sqlalchemy import (
     String,
     UUID,
     UniqueConstraint,
-    func,
 )
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
+from app.models.model_columns import ModelColumns
 
 
 class Ticket(Base):
@@ -54,17 +54,17 @@ class Ticket(Base):
     status = Column(String(50), nullable=False, default="Open")  # e.g., Open, In Progress, Closed
     priority = Column(String(50), nullable=False, default="Medium")  # e.g., Low, Medium, High
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    created_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=False)
+    created_by = ModelColumns.created_by_project_member(nullable=False)
     assignee_id = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
+    created_at = ModelColumns.created_at(nullable=False)
+    updated_at = ModelColumns.updated_at(nullable=True)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
-    updated_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
+    updated_by = ModelColumns.updated_by_project_member(nullable=True)
     ticket_type = Column(String(50), nullable=True)
     ticket_id = Column(Integer, nullable=True)
-    deleted_at = Column(DateTime(timezone=True), nullable=True)
-    deleted_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
+    deleted_at = ModelColumns.deleted_at(nullable=True)
+    deleted_by = ModelColumns.deleted_by_project_member(nullable=True)
     resolved_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
 
     project = relationship("Project", back_populates="tickets")

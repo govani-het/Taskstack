@@ -1,10 +1,11 @@
 
 import uuid
 
-from sqlalchemy import UUID, Boolean, Column, DateTime, ForeignKey, String, func
+from sqlalchemy import UUID, Boolean, Column, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
+from app.models.model_columns import ModelColumns
 
 
 class User(Base):
@@ -19,13 +20,13 @@ class User(Base):
     organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = ModelColumns.created_at(nullable=False)
+    updated_at = ModelColumns.updated_at(nullable=True)
+    deleted_at = ModelColumns.deleted_at(nullable=True)
 
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    updated_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    deleted_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    created_by = ModelColumns.created_by_user(nullable=True)
+    updated_by = ModelColumns.updated_by_user(nullable=True)
+    deleted_by = ModelColumns.deleted_by_user(nullable=True)
 
     role = relationship("Role", back_populates="users")
     organization = relationship("Organization",back_populates="users",foreign_keys=[organization_id])

@@ -2,17 +2,16 @@ import uuid
 
 from sqlalchemy import (
     Column,
-    DateTime,
     ForeignKey,
     ForeignKeyConstraint,
     String,
     UUID,
     UniqueConstraint,
-    func,
 )
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
+from app.models.model_columns import ModelColumns
 
 
 class Comment(Base):
@@ -46,13 +45,13 @@ class Comment(Base):
     ticket_id = Column(UUID(as_uuid=True), ForeignKey("tickets.id"), nullable=False)
     comment = Column(String(1000), nullable=False)
 
-    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = ModelColumns.created_at(nullable=False)
+    updated_at = ModelColumns.updated_at(nullable=True)
+    deleted_at = ModelColumns.deleted_at(nullable=True)
 
-    created_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=False)
-    updated_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
-    deleted_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
+    created_by = ModelColumns.created_by_project_member(nullable=False)
+    updated_by = ModelColumns.updated_by_project_member(nullable=True)
+    deleted_by = ModelColumns.deleted_by_project_member(nullable=True)
 
     ticket = relationship("Ticket", back_populates="comments", foreign_keys=[ticket_id])
     created_by_member = relationship(
