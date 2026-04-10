@@ -1,39 +1,58 @@
 from sqlalchemy import Column, DateTime, ForeignKey, UUID, func
+from sqlalchemy.orm import declared_attr
 
 
-class ModelColumns:
-    @staticmethod
-    def created_at(nullable: bool = False):
-        return Column(DateTime(timezone=True), nullable=nullable, server_default=func.now())
+class TimestampRequiredMixin:
+    @declared_attr
+    def created_at(cls):
+        return Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    @staticmethod
-    def updated_at(nullable: bool = True):
-        return Column(DateTime(timezone=True), nullable=nullable, onupdate=func.now())
+    @declared_attr
+    def updated_at(cls):
+        return Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
 
-    @staticmethod
-    def deleted_at(nullable: bool = True):
-        return Column(DateTime(timezone=True), nullable=nullable)
+    @declared_attr
+    def deleted_at(cls):
+        return Column(DateTime(timezone=True), nullable=True)
 
-    @staticmethod
-    def created_by_user(nullable: bool = True):
-        return Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=nullable)
 
-    @staticmethod
-    def updated_by_user(nullable: bool = True):
-        return Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=nullable)
+class TimestampOptionalMixin:
+    @declared_attr
+    def created_at(cls):
+        return Column(DateTime(timezone=True), nullable=True, server_default=func.now())
 
-    @staticmethod
-    def deleted_by_user(nullable: bool = True):
-        return Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=nullable)
+    @declared_attr
+    def updated_at(cls):
+        return Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
 
-    @staticmethod
-    def created_by_project_member(nullable: bool = True):
-        return Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=nullable)
+    @declared_attr
+    def deleted_at(cls):
+        return Column(DateTime(timezone=True), nullable=True)
 
-    @staticmethod
-    def updated_by_project_member(nullable: bool = True):
-        return Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=nullable)
 
-    @staticmethod
-    def deleted_by_project_member(nullable: bool = True):
-        return Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=nullable)
+class UserAuditMixin:
+    @declared_attr
+    def created_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+
+    @declared_attr
+    def updated_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+
+    @declared_attr
+    def deleted_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+
+
+class ProjectMemberAuditMixin:
+    @declared_attr
+    def created_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=False)
+
+    @declared_attr
+    def updated_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
+
+    @declared_attr
+    def deleted_by(cls):
+        return Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)

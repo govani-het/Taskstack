@@ -13,10 +13,10 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
-from app.models.model_columns import ModelColumns
+from app.models.model_columns import ProjectMemberAuditMixin, TimestampRequiredMixin
 
 
-class Ticket(Base):
+class Ticket(TimestampRequiredMixin, ProjectMemberAuditMixin, Base):
     __tablename__ = "tickets"
     __table_args__ = (
         UniqueConstraint("project_id", "id", name="uq_tickets_project_and_id"),
@@ -54,31 +54,25 @@ class Ticket(Base):
     status = Column(String(50), nullable=False, default="Open")  # e.g., Open, In Progress, Closed
     priority = Column(String(50), nullable=False, default="Medium")  # e.g., Low, Medium, High
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    created_by = ModelColumns.created_by_project_member(nullable=False)
     assignee_id = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=True)
-    created_at = ModelColumns.created_at(nullable=False)
-    updated_at = ModelColumns.updated_at(nullable=True)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
-    updated_by = ModelColumns.updated_by_project_member(nullable=True)
     ticket_type = Column(String(50), nullable=True)
     ticket_id = Column(Integer, nullable=True)
-    deleted_at = ModelColumns.deleted_at(nullable=True)
-    deleted_by = ModelColumns.deleted_by_project_member(nullable=True)
     resolved_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
 
     project = relationship("Project", back_populates="tickets")
     created_by_member = relationship(
-        "ProjectMember", foreign_keys=[created_by], back_populates="created_tickets"
+        "ProjectMember", foreign_keys="Ticket.created_by", back_populates="created_tickets"
     )
     assignee_member = relationship(
         "ProjectMember", foreign_keys=[assignee_id], back_populates="assigned_tickets"
     )
     updated_by_member = relationship(
-        "ProjectMember", foreign_keys=[updated_by], back_populates="updated_tickets"
+        "ProjectMember", foreign_keys="Ticket.updated_by", back_populates="updated_tickets"
     )
     deleted_by_member = relationship(
-        "ProjectMember", foreign_keys=[deleted_by], back_populates="deleted_tickets"
+        "ProjectMember", foreign_keys="Ticket.deleted_by", back_populates="deleted_tickets"
     )
     resolved_by_member = relationship(
         "ProjectMember", foreign_keys=[resolved_by], back_populates="resolved_tickets"
