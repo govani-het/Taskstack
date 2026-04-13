@@ -20,6 +20,7 @@ from app.models import (
     Ticket,
     User,
     WorkLog,
+    RefreshToken
 )
 
 # this is the Alembic Config object, which provides
