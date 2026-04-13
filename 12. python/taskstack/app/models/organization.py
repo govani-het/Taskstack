@@ -4,9 +4,10 @@ from sqlalchemy import UUID, Boolean, Column, DateTime, ForeignKey, String, func
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
+from app.models.model_columns import TimestampOptionalMixin, UserAuditMixin
 
 
-class Organization(Base):
+class Organization(TimestampOptionalMixin, UserAuditMixin, Base):
     __tablename__ = "organizations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
@@ -16,14 +17,6 @@ class Organization(Base):
     subscription_plan_id = Column(UUID(as_uuid=True), ForeignKey("subscriptions.id"), nullable=True)
     subscribe_at = Column(DateTime(timezone=True), nullable=True)
 
-    created_at = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True), nullable=True)
-
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    updated_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    deleted_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-
     cancel_subscription_at = Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
     cancel_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
@@ -32,7 +25,7 @@ class Organization(Base):
     projects = relationship("Project", back_populates="organization")
     subscription_plan = relationship("Subscription", back_populates="organizations")
 
-    created_by_user = relationship("User", foreign_keys=[created_by])
-    updated_by_user = relationship("User", foreign_keys=[updated_by])
-    deleted_by_user = relationship("User", foreign_keys=[deleted_by])
+    created_by_user = relationship("User", foreign_keys="Organization.created_by")
+    updated_by_user = relationship("User", foreign_keys="Organization.updated_by")
+    deleted_by_user = relationship("User", foreign_keys="Organization.deleted_by")
     cancel_by_user = relationship("User", foreign_keys=[cancel_by])

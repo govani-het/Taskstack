@@ -1,12 +1,13 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, ForeignKey, UniqueConstraint,ForeignKeyConstraint, String, UUID, UniqueConstraint, func
+from sqlalchemy import Column, ForeignKey, ForeignKeyConstraint, String, UUID, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
+from app.models.model_columns import ProjectMemberAuditMixin, TimestampRequiredMixin
 
 
-class Reply(Base):
+class Reply(TimestampRequiredMixin, ProjectMemberAuditMixin, Base):
     __tablename__ = "replies"
     __table_args__ = (
         UniqueConstraint("project_id", "id", name="uq_replies_project_and_id"),
@@ -37,21 +38,13 @@ class Reply(Base):
     comment_id = Column(UUID(as_uuid=True), ForeignKey("comments.id"), nullable=False)
     reply = Column(String(1000), nullable=False)
 
-    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True), nullable=True)
-
-    created_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=False)
-    updated_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
-    deleted_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
-
     comment = relationship("Comment", back_populates="replies", foreign_keys=[comment_id])
     created_by_member = relationship(
-        "ProjectMember", foreign_keys=[created_by], back_populates="created_replies"
+        "ProjectMember", foreign_keys="Reply.created_by", back_populates="created_replies"
     )
     updated_by_member = relationship(
-        "ProjectMember", foreign_keys=[updated_by], back_populates="updated_replies"
+        "ProjectMember", foreign_keys="Reply.updated_by", back_populates="updated_replies"
     )
     deleted_by_member = relationship(
-        "ProjectMember", foreign_keys=[deleted_by], back_populates="deleted_replies"
+        "ProjectMember", foreign_keys="Reply.deleted_by", back_populates="deleted_replies"
     )
