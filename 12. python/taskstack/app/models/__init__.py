@@ -8,6 +8,7 @@ from .subscription import Subscription
 from .users import User
 from .projects import Project
 from .work_log import WorkLog
+from .refresh_token import RefreshToken
 
 __all__ = [
     "Role",
@@ -20,4 +21,5 @@ __all__ = [
     "Comment",
     "Reply",
     "WorkLog",
+    "RefreshToken",
 ]
