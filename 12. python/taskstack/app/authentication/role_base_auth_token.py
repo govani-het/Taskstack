@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 
 from dotenv import load_dotenv
@@ -18,23 +18,37 @@ ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+from datetime import datetime, timedelta, timezone
+import os
 
-def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
+def create_token(
+    data: dict,
+    token_type: str = "access",
+    expires_delta: timedelta | None = None
+):
     to_encode = data.copy()
+
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
+
+    elif token_type == "access":
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+
+    elif token_type == "refresh":
+        expire = datetime.now(timezone.utc) + timedelta(
+            days=int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS"))
+        )
+
     else:
-        expire = datetime.utcnow() + timedelta(minutes=int(os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES")))  # Refresh token valid for 7 days
-    to_encode.update({"exp": expire})
+        raise ValueError("Invalid token_type")
+
+    to_encode.update({
+        "exp": expire,
+        "type": token_type
+    })
+
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 

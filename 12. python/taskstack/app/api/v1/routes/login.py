@@ -2,12 +2,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Depends, HTTPException, status, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 import bcrypt
+import uuid
 
 from app.schemas import login_schemas
 from app.config.database import get_db
 from app.repositories.auth_query import get_active_user_by_email
-from app.authentication.role_base_auth_token import create_access_token, create_refresh_token
-from datetime import timedelta
+from app.authentication.role_base_auth_token import create_token, get_current_user
+
+from datetime import datetime, timedelta, timezone
 import os
 
 router = APIRouter(
@@ -54,18 +56,23 @@ async def login(request: OAuth2PasswordRequestForm = Depends(), db: AsyncSession
         "organization_id": str(user.organization_id) if user.organization_id else None,
     }
 
-    access_token_expires = timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)))
-    access_token = create_access_token(data=access_token_data, expires_delta=access_token_expires)
 
-    refresh_token_data = {
-        "sub": user.email,
-        "id": str(user.id),
-    }
-    refresh_token = create_refresh_token(data=refresh_token_data)
+    access_token = create_token(data=access_token_data, token_type="access", expires_delta=timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15))))
+
+
+
+    refresh_token = create_token(data=access_token_data, token_type="refresh", expires_delta=timedelta(days=int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))))
 
     return {
         "access_token": access_token,
         "token_type": "bearer",
         "refresh_token": refresh_token,
     }
+
+
+# @router.post("/logout")
+# async def logout(current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+#     user_id = uuid.UUID(current_user["id"])
+#     await revoke_refresh_tokens_by_user(db, user_id)
+#     return {"message": "Successfully logged out. Please clear your local tokens."}
 
