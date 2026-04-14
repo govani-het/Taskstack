@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from starlette import status
 
-from app.authentication.login import router as auth_router
+from app.api.v1.routes.login import router as auth_router
 from app.api.v1 import router as v1_router
 
 app = FastAPI()
