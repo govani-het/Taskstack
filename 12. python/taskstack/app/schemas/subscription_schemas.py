@@ -25,3 +25,11 @@ class SubscriptionResponse(SubscriptionBase):
 
     class Config:
         from_attributes = True
+
+
+class SubscriptionBasicResponse(BaseModel):
+    id: UUID
+    plan_name: str
+
+    class Config:
+        from_attributes = True

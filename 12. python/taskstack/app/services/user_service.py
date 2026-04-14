@@ -17,11 +17,7 @@ from app.repositories.organization_repository import get_organization_by_name
 from app.schemas.user_schemas import UserCreate, UserUpdate, UserResponse
 from app.models.roles import Role
 from app.models.organization import Organization
-
-
-def hash_password(password: str) -> str:
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+from app.utils.hash_password import hash_password
 
 
 async def validate_role_exists(db: AsyncSession, role_name: str) -> Optional[Role]:

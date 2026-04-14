@@ -11,7 +11,9 @@ class OrganizationBase(BaseModel):
 
 
 class OrganizationCreate(OrganizationBase):
-    pass
+    first_name: str = Field(..., min_length=1, max_length=100)
+    last_name: str = Field(..., min_length=1, max_length=100)
+    password: str = Field(..., min_length=8)
 
 
 class OrganizationUpdate(BaseModel):

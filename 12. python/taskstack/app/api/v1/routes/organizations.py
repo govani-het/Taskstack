@@ -26,11 +26,10 @@ router = APIRouter(
 @router.post("/", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
 async def create_organization(
     organization_data: OrganizationCreate,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     try:
-        organization = await create_organization_service(db, organization_data, UUID(current_user["id"]))
+        organization = await create_organization_service(db, organization_data)
         return organization
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -127,7 +126,7 @@ async def delete_organization(
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    check_allowed_roles(current_user, ["system admin"], "delete organizations")
+    check_allowed_roles(current_user, ["admin"], "delete organizations")
 
     success = await delete_organization_service(db, organization_id)
     if not success:
