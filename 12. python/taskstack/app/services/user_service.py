@@ -12,26 +12,20 @@ from app.repositories.user_repository import (
     update_user,
     delete_user,
 )
+from app.repositories.role_repository import get_role_by_name
+from app.repositories.organization_repository import get_organization_by_name
 from app.schemas.user_schemas import UserCreate, UserUpdate, UserResponse
 from app.models.roles import Role
 from app.models.organization import Organization
+from app.utils.hash_password import hash_password
 
 
-def hash_password(password: str) -> str:
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+async def validate_role_exists(db: AsyncSession, role_name: str) -> Optional[Role]:
+    return await get_role_by_name(db, role_name)
 
 
-async def validate_role_exists(db: AsyncSession, role_id: UUID) -> bool:
-    stmt = select(Role).where(Role.id == role_id)
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none() is not None
-
-
-async def validate_organization_exists(db: AsyncSession, org_id: UUID) -> bool:
-    stmt = select(Organization).where(Organization.id == org_id)
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none() is not None
+async def validate_organization_exists(db: AsyncSession, org_name: str) -> Optional[Organization]:
+    return await get_organization_by_name(db, org_name)
 
 
 async def create_user_service(db: AsyncSession, user_data: UserCreate) -> UserResponse:
@@ -40,19 +34,30 @@ async def create_user_service(db: AsyncSession, user_data: UserCreate) -> UserRe
     if existing_user:
         raise ValueError("Email already registered")
 
-    # Validate role exists
-    if not await validate_role_exists(db, user_data.role_id):
-        raise ValueError("Invalid role ID")
+    # Validate role exists and get role object
+    role = await validate_role_exists(db, user_data.role_name)
+    if not role:
+        raise ValueError("Invalid role name")
 
-    # Validate organization if provided
-    if user_data.organization_id and not await validate_organization_exists(db, user_data.organization_id):
-        raise ValueError("Invalid organization ID")
+    # Validate organization if provided and get organization object
+    organization = None
+    if user_data.organization_name:
+        organization = await validate_organization_exists(db, user_data.organization_name)
+        if not organization:
+            raise ValueError("Invalid organization name")
 
     # Hash password
     hashed_password = hash_password(user_data.password)
 
     user_dict = user_data.model_dump()
     user_dict["password"] = hashed_password
+    user_dict["role_id"] = role.id
+    user_dict.pop("role_name", None)
+    user_dict.pop("organization_name", None)
+    if organization:
+        user_dict["organization_id"] = organization.id
+    else:
+        user_dict.pop("organization_id", None)
 
     user = await create_user(db, user_dict)
     return UserResponse.model_validate(user)
@@ -73,13 +78,24 @@ async def get_users_service(db: AsyncSession, skip: int = 0, limit: int = 100) -
 async def update_user_service(db: AsyncSession, user_id: UUID, update_data: UserUpdate) -> Optional[UserResponse]:
     update_dict = update_data.model_dump(exclude_unset=True)
 
-    # Validate role if provided
-    if "role_id" in update_dict and not await validate_role_exists(db, update_dict["role_id"]):
-        raise ValueError("Invalid role ID")
+    # Validate and convert role_name to role_id if provided
+    if "role_name" in update_dict:
+        role = await validate_role_exists(db, update_dict["role_name"])
+        if not role:
+            raise ValueError("Invalid role name")
+        update_dict["role_id"] = role.id
+        del update_dict["role_name"]
 
-    # Validate organization if provided
-    if "organization_id" in update_dict and update_dict["organization_id"] and not await validate_organization_exists(db, update_dict["organization_id"]):
-        raise ValueError("Invalid organization ID")
+    # Validate and convert organization_name to organization_id if provided
+    if "organization_name" in update_dict:
+        if update_dict["organization_name"]:
+            organization = await validate_organization_exists(db, update_dict["organization_name"])
+            if not organization:
+                raise ValueError("Invalid organization name")
+            update_dict["organization_id"] = organization.id
+        else:
+            update_dict["organization_id"] = None
+        del update_dict["organization_name"]
 
     # Check email uniqueness if changing email
     if "email" in update_dict:
