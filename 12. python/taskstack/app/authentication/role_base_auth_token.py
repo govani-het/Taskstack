@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta, timezone
 import os
 
-from dotenv import load_dotenv
 
 import constant
 from jose import jwt, JWTError
 from fastapi import HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from dotenv import load_dotenv
 from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer
 
 load_dotenv()
 
@@ -15,11 +15,6 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-from datetime import datetime, timedelta, timezone
-import os
 
 def create_token(
     data: dict,
@@ -51,6 +46,8 @@ def create_token(
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -60,16 +57,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     return verify_token(token, credentials_exception)
 
-
-def verify_refresh_token(token: str, credentials_exception):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        return {"email": email}
-    except JWTError:
-        raise credentials_exception
 
 
 def verify_token(token: str, credentials_exception):
