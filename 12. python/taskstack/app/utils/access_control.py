@@ -1,18 +1,19 @@
-from fastapi import HTTPException, status
-from typing import Iterable
+from fastapi import HTTPException, status, Depends
+from typing import Iterable, Annotated
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.authentication.role_base_auth_token import get_current_user
 
 
-def check_allowed_roles(current_user: dict, allowed_roles: Iterable[str], action: str = "access this resource") -> None:
-    """Raise HTTP 403 if current_user role is not in allowed_roles."""
-    if isinstance(allowed_roles, str):
-        allowed_roles = [allowed_roles]
+def require_roles(allowed_roles: list[str]):
+    def role_checker(user=Depends(get_current_user)):
+        if user["role"] not in allowed_roles:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden"
+            )
 
-    user_role = current_user.get("role")
-    if user_role not in allowed_roles:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=(
-                f"User with role '{user_role}' is not authorized to {action}. "
-                f"Allowed roles: {', '.join(allowed_roles)}"
-            ),
-        )
+        return user
+
+    return role_checker

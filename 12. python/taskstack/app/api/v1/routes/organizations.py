@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Annotated
 from uuid import UUID
 
 from app.config.database import get_db
@@ -15,7 +15,7 @@ from app.services.organization_service import (
     delete_organization_service,
 )
 from app.authentication.role_base_auth_token import get_current_user
-from app.utils.access_control import check_allowed_roles
+from app.utils.access_control import require_roles
 
 router = APIRouter(
     prefix="/organizations",
@@ -36,18 +36,12 @@ async def create_organization(
 
 
 @router.get("/{organization_id}", response_model=OrganizationResponse)
+@require_roles(["system admin"])
 async def get_organization(
     organization_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    # Super admin can view any organization, others can only view their own
-    if current_user.get("role") != "system admin" and str(organization_id) != current_user.get("organization_id"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied"
-        )
-
     organization = await get_organization_service(db, organization_id)
     if not organization:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
@@ -55,6 +49,7 @@ async def get_organization(
 
 
 @router.get("/", response_model=List[OrganizationResponse])
+@require_roles(["system admin"])
 async def get_organizations(
     skip: int = 0,
     limit: int = 100,
@@ -74,30 +69,24 @@ async def get_organizations(
 
 
 @router.get("/unapproved/", response_model=List[OrganizationResponse])
+@require_roles(["system admin"])
 async def get_unapproved_organizations(
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    check_allowed_roles(current_user, ["system admin"], "view unapproved organizations")
     return await get_unapproved_organizations_service(db, skip, limit)
 
 
 @router.put("/{organization_id}", response_model=OrganizationResponse)
+@require_roles(["system admin"])
 async def update_organization(
     organization_id: UUID,
     update_data: OrganizationUpdate,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    # Super admin can update any organization, others can only update their own
-    if current_user.get("role") != "system admin" and str(organization_id) != current_user.get("organization_id"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied"
-        )
-
     try:
         organization = await update_organization_service(db, organization_id, update_data, UUID(current_user["id"]))
         if not organization:
@@ -108,12 +97,12 @@ async def update_organization(
 
 
 @router.put("/{organization_id}/approve", response_model=OrganizationResponse)
+@require_roles(["system admin"])
 async def approve_organization(
     organization_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    check_allowed_roles(current_user, ["system admin"], "approve organizations")
     organization = await approve_organization_service(db, organization_id, UUID(current_user["id"]))
     if not organization:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
@@ -121,12 +110,12 @@ async def approve_organization(
 
 
 @router.delete("/{organization_id}", status_code=status.HTTP_204_NO_CONTENT)
+@require_roles(["system admin"])
 async def delete_organization(
     organization_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    check_allowed_roles(current_user, ["admin"], "delete organizations")
 
     success = await delete_organization_service(db, organization_id)
     if not success:
