@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import bcrypt
 import uuid
 
+from typing import Annotated
 from app.schemas import login_schemas
 from app.config.database import get_db
 from app.repositories.auth_query import get_active_user_by_email
@@ -32,7 +33,7 @@ def verify_password(plain_password: str, stored_password: str) -> bool:
 
 
 @router.post("/login", response_model=login_schemas.Token)
-async def login(request: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+async def login(request: Annotated[OAuth2PasswordRequestForm , Depends()], db: Annotated[AsyncSession , Depends(get_db)]):
     user = await get_active_user_by_email(db, request.username)
 
     if not user:
