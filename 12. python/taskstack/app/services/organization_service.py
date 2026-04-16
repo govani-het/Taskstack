@@ -89,20 +89,36 @@ class OrganizationService:
             return APIResponse.success_response("Organization Fetch Successfully.", OrganizationResponse.model_validate(organization))
         return APIResponse.error_response("Failed to fetch organization")
 
-    async def get_organizations_service(self, skip: int = 0, limit: int = 100) -> APIResponse[List[OrganizationResponse]]:
-        """Get organizations with pagination.
+    async def get_organizations_service(self, current_user: dict, skip: int = 0, limit: int = 100) -> APIResponse[List[OrganizationResponse]]:
+        """Get organizations visible to the current user.
 
         Args:
+            current_user: Authenticated user payload.
             skip: Number of records to skip.
             limit: Maximum number of records to return.
 
         Returns:
             APIResponse[List[OrganizationResponse]]: Standardized organization list response.
         """
-        organizations = await get_organizations(self.db, skip, limit)
-        if not organizations:
-            return APIResponse.error_response("Failed to fetch organizations")
-        return APIResponse.success_response("SuccessFully fetch all organizations", [OrganizationResponse.model_validate(organization) for organization in organizations])
+        if current_user.get("role") == "system admin":
+            organizations = await get_organizations(self.db, skip, limit)
+            if not organizations:
+                return APIResponse.error_response("Failed to fetch organizations")
+            return APIResponse.success_response(
+                "SuccessFully fetch all organizations",
+                [OrganizationResponse.model_validate(organization) for organization in organizations],
+            )
+
+        if current_user.get("organization_id"):
+            organization_response = await self.get_organization_service(UUID(current_user["organization_id"]))
+            if organization_response.data:
+                return APIResponse.success_response(
+                    "Organization fetched successfully",
+                    [organization_response.data],
+                )
+            return APIResponse.error_response("Organization not found")
+
+        return APIResponse.error_response("No organization associated")
 
     async def get_unapproved_organizations_service(self, skip: int = 0, limit: int = 100) -> APIResponse[List[OrganizationResponse]]:
         """Get unapproved organizations with pagination.

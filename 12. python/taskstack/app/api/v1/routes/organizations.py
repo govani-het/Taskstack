@@ -1,6 +1,6 @@
 """Organization API routes."""
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
 from uuid import UUID
@@ -17,7 +17,6 @@ router = APIRouter(
     prefix="/organizations",
     tags=["organizations"],
 )
-
 
 @router.post("/", response_model=APIResponse[OrganizationResponse], status_code=status.HTTP_201_CREATED)
 async def create_organization(
@@ -53,13 +52,11 @@ async def get_organization(
 
 
 @router.get("/", response_model=APIResponse[List[OrganizationResponse]])
-@require_roles(["system admin"])
 async def get_organizations(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
     skip: int = 0,
     limit: int = 100,
-    
 ):
     """Get organizations visible to the current user.
 
@@ -68,25 +65,9 @@ async def get_organizations(
         current_user: Authenticated user payload.
         skip: Number of records to skip.
         limit: Maximum number of records to return.
-
-    Returns:
-        APIResponse[List[OrganizationResponse]]: Standardized organization list response.
     """
-    # Super admin can view all organizations, others can only view their own
-    if current_user.get("role") == "system admin":
-        organization_obj = OrganizationService(db)
-        return await organization_obj.get_organizations_service(skip, limit)
-    else:
-        # For non-super admin, return only their organization
-        if current_user.get("organization_id"):
-            organization_obj = OrganizationService(db)
-            organization = await organization_obj.get_organization_service(UUID(current_user["organization_id"]))
-            if organization.data:
-                return APIResponse.success_response("Organization fetched successfully", [organization.data])
-            else:
-                return APIResponse.error_response("Organization not found")
-        else:
-            return APIResponse.error_response("No organization associated")
+    organization_obj = OrganizationService(db)
+    return await organization_obj.get_organizations_service(current_user, skip, limit)
 
 
 @router.get("/unapproved/", response_model=APIResponse[List[OrganizationResponse]])

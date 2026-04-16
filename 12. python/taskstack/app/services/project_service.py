@@ -25,19 +25,44 @@ class ProjectService:
         """
         self.db = db
 
-    async def get_project_service(self, project_id: UUID) -> APIResponse[Optional[ProjectResponse]]:
+    async def get_project_service(self, project_id: UUID, current_user: dict) -> APIResponse[Optional[ProjectResponse]]:
         """Get a project by ID.
 
         Args:
             project_id: Project identifier.
+            current_user: Authenticated user payload.
 
         Returns:
             APIResponse[Optional[ProjectResponse]]: Standardized project lookup response.
         """
         project = await get_project_by_id(self.db, project_id)
-        if project:
-            return APIResponse.success_response("Project fetched successfully", ProjectResponse.model_validate(project))
-        return APIResponse.error_response("Project not found")
+        if not project:
+            return APIResponse.error_response("Project not found")
+
+        if current_user.get("role") != "system admin" and str(project.organization_id) != current_user.get("organization_id"):
+            return APIResponse.error_response("Access denied")
+
+        return APIResponse.success_response("Project fetched successfully", ProjectResponse.model_validate(project))
+
+    async def get_projects_service(self, current_user: dict, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectResponse]]:
+        """Get projects visible to the current user.
+
+        Args:
+            current_user: Authenticated user payload.
+            skip: Number of records to skip.
+            limit: Maximum number of records to return.
+
+        Returns:
+            APIResponse[List[ProjectResponse]]: Standardized project list response.
+        """
+        if current_user.get("role") == "system admin":
+            return await self.get_all_projects_service(skip, limit)
+
+        organization_id = current_user.get("organization_id")
+        if organization_id:
+            return await self.get_projects_by_organization_service(UUID(organization_id), skip, limit)
+
+        return APIResponse.error_response("No organization associated")
 
     async def get_projects_by_organization_service(self, organization_id: UUID, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectResponse]]:
         """Get projects for an organization.

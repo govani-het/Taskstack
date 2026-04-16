@@ -1,6 +1,6 @@
 """Project API routes."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
 from uuid import UUID
@@ -55,19 +55,7 @@ async def get_project(
     Raises:
         HTTPException: If the project is missing or the user lacks access.
     """
-    project_obj = ProjectService(db)
-    response = await project_obj.get_project_service(project_id)
-    if response.error:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response.error)
-
-    # Super admin can view any project, others can only view projects in their organization
-    if current_user.get("role") != "system admin" and str(response.data.organization_id) != current_user.get("organization_id"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied"
-        )
-
-    return response
+    return await project_obj.get_project_service(project_id, current_user)
 
 
 @router.get("/", response_model=APIResponse[List[ProjectResponse]])
@@ -90,10 +78,4 @@ async def get_projects(
         APIResponse[List[ProjectResponse]]: Standardized project list response.
     """
     project_obj = ProjectService(db)
-    # Super admin can view all projects, others can only view projects in their organization
-    if current_user.get("role") == "system admin":
-        return await project_obj.get_all_projects_service(skip, limit)
-    elif current_user.get("organization_id"):
-        return await project_obj.get_projects_by_organization_service(UUID(current_user["organization_id"]), skip, limit)
-    else:
-        return APIResponse.error_response("No organization associated")
+    return await project_obj.get_projects_service(current_user, skip, limit)
