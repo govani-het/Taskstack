@@ -1,6 +1,7 @@
 """Organization service layer."""
 
 from http.client import responses
+from fastapi import HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
@@ -91,10 +92,12 @@ class OrganizationService:
         try:
             organization = await create_organization(self.db, organization_dict)
             if not organization:
-                return APIResponse.error_response(ERROR_FAILED_TO_CREATE_ORGANIZATION)
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_FAILED_TO_CREATE_ORGANIZATION)
             return APIResponse.success_response(SUCCESS_ORGANIZATION_CREATED, OrganizationResponse.model_validate(organization))
+        except HTTPException:
+            raise
         except Exception as e:
-            return APIResponse.error_response(str(e))
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     async def get_organization_service(self, organization_id: UUID) -> APIResponse[Optional[OrganizationResponse]]:
         """Get an organization by ID.
@@ -109,7 +112,7 @@ class OrganizationService:
         organization = await get_organization_by_id(self.db, organization_id)
         if organization:
             return APIResponse.success_response(SUCCESS_ORGANIZATION_FETCHED, OrganizationResponse.model_validate(organization))
-        return APIResponse.error_response(ERROR_FAILED_TO_FETCH_ORGANIZATION)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_FAILED_TO_FETCH_ORGANIZATION)
 
     async def get_organizations_service(self, current_user: dict, skip: int = 0, limit: int = 100) -> APIResponse[List[OrganizationResponse]]:
         """Get organizations visible to the current user.
@@ -125,7 +128,7 @@ class OrganizationService:
         if current_user.get("role") == "system admin":
             organizations = await get_organizations(self.db, skip, limit)
             if not organizations:
-                return APIResponse.error_response(ERROR_FAILED_TO_FETCH_ORGANIZATIONS)
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_FAILED_TO_FETCH_ORGANIZATIONS)
             return APIResponse.success_response(
                 SUCCESS_ORGANIZATIONS_FETCHED,
                 [OrganizationResponse.model_validate(organization) for organization in organizations],
@@ -138,9 +141,9 @@ class OrganizationService:
                     SUCCESS_ORGANIZATION_FETCHED_BY_ID,
                     [organization_response.data],
                 )
-            return APIResponse.error_response(ERROR_ORGANIZATION_NOT_FOUND)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_ORGANIZATION_NOT_FOUND)
 
-        return APIResponse.error_response(ERROR_NO_ORGANIZATION_ASSOCIATED)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_NO_ORGANIZATION_ASSOCIATED)
 
     async def get_unapproved_organizations_service(self, skip: int = 0, limit: int = 100) -> APIResponse[List[OrganizationResponse]]:
         """Get unapproved organizations with pagination.
@@ -154,7 +157,7 @@ class OrganizationService:
         """
         organizations = await get_unapproved_organizations(self.db, skip, limit)
         if not organizations:
-            return APIResponse.error_response(ERROR_FAILED_TO_FETCH_UNAPPROVED_ORGANIZATIONS)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_FAILED_TO_FETCH_UNAPPROVED_ORGANIZATIONS)
 
         return APIResponse.success_response(SUCCESS_UNAPPROVED_ORGANIZATIONS_FETCHED, [OrganizationResponse.model_validate(organization) for organization in organizations])
 
@@ -173,12 +176,12 @@ class OrganizationService:
         update_dict = update_data.model_dump(exclude_unset=True)
 
         if "subscription_plan_id" in update_dict and update_dict["subscription_plan_id"] and not await self.validate_subscription_exists(update_dict["subscription_plan_id"]):
-            return APIResponse.error_response(ERROR_INVALID_SUBSCRIPTION_PLAN_ID)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_INVALID_SUBSCRIPTION_PLAN_ID)
 
         if "email" in update_dict:
             existing_organization = await get_organization_by_email(self.db, update_dict["email"])
             if existing_organization and existing_organization.id != organization_id:
-                return APIResponse.error_response(ERROR_ORGANIZATION_EMAIL_ALREADY_REGISTERED)
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_ORGANIZATION_EMAIL_ALREADY_REGISTERED)
 
         if updated_by:
             update_dict["updated_by"] = updated_by
@@ -186,7 +189,7 @@ class OrganizationService:
         organization = await update_organization(self.db, organization_id, update_dict)
         if organization:
             return APIResponse.success_response(SUCCESS_ORGANIZATION_UPDATED, OrganizationResponse.model_validate(organization))
-        return APIResponse.error_response(ERROR_FAILED_TO_UPDATE_ORGANIZATION)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_FAILED_TO_UPDATE_ORGANIZATION)
 
 
     async def approve_organization_service(self, organization_id: UUID, approved_by: UUID) -> APIResponse[Optional[OrganizationResponse]]:
@@ -202,7 +205,7 @@ class OrganizationService:
         response = await self.update_organization_service(organization_id, OrganizationUpdate(is_approved=True), approved_by)
         if response:
             return APIResponse.success_response(SUCCESS_ORGANIZATION_APPROVED)
-        return APIResponse.error_response(ERROR_FAILED_TO_APPROVE_ORGANIZATION)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_FAILED_TO_APPROVE_ORGANIZATION)
 
     async def delete_organization_service(self, organization_id: UUID, deleted_by: Optional[UUID] = None) -> APIResponse[str]:
         """Soft-delete an organization.
@@ -216,5 +219,5 @@ class OrganizationService:
         """
         response = await delete_organization(self.db, organization_id, deleted_by)
         if not response:
-            return APIResponse.error_response(ERROR_FAILED_TO_DELETE_ORGANIZATION)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_FAILED_TO_DELETE_ORGANIZATION)
         return APIResponse.success_response(SUCCESS_ORGANIZATION_DELETED)

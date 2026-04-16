@@ -1,5 +1,6 @@
 """Project member service layer."""
 
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from uuid import UUID
@@ -13,6 +14,9 @@ from app.schemas.project_member_schemas import ProjectMemberResponse
 
 
 from app.schemas.response_schemas import APIResponse
+from app.constant.project_member_constant import (
+    ROLE_SYSTEM_ADMIN,
+)
 
 class ProjectMemberService:
     """Provides project member business logic."""
@@ -39,14 +43,14 @@ class ProjectMemberService:
         """
         project = await get_project_by_id(self.db, project_id)
         if not project:
-            return APIResponse.error_response("Project not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
-        if current_user.get("role") != "system admin" and str(project.organization_id) != current_user.get("organization_id"):
-            return APIResponse.error_response("Access denied")
+        if current_user.get("role") != ROLE_SYSTEM_ADMIN and str(project.organization_id) != current_user.get("organization_id"):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
         members = await get_project_members_by_project(self.db, project_id, skip, limit)
         if not members:
-            return APIResponse.error_response("Project member not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project member not found")
         return APIResponse.success_response(
             "Project members fetched successfully",
             [ProjectMemberResponse.model_validate(member) for member in members]

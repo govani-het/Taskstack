@@ -1,5 +1,6 @@
 """Role service layer."""
 
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
@@ -52,14 +53,14 @@ class RoleService:
         # Check if role name already exists
         existing_role = await get_role_by_name(self.db, role_data.name)
         if existing_role:
-            return APIResponse.error_response(ERROR_ROLE_NAME_ALREADY_EXISTS)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_ROLE_NAME_ALREADY_EXISTS)
 
         role_dict = role_data.model_dump()
         try:
             role = await create_role(self.db, role_dict)
             return APIResponse.success_response(SUCCESS_ROLE_CREATED, RoleResponse.model_validate(role))
         except Exception as e:
-            return APIResponse.error_response(str(e))
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     async def get_role_service(self, role_id: UUID) -> APIResponse[Optional[RoleResponse]]:
         """Get a role by ID.
@@ -73,7 +74,7 @@ class RoleService:
         role = await get_role_by_id(self.db, role_id)
         if role:
             return APIResponse.success_response(SUCCESS_ROLE_FETCHED, RoleResponse.model_validate(role))
-        return APIResponse.error_response(ERROR_ROLE_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_ROLE_NOT_FOUND)
 
     async def get_roles_service(self, skip: int = 0, limit: int = 100) -> APIResponse[List[RoleResponse]]:
         """Get roles with pagination.
@@ -105,7 +106,7 @@ class RoleService:
         if "name" in update_dict:
             existing_role = await get_role_by_name(self.db, update_dict["name"])
             if existing_role and existing_role.id != role_id:
-                return APIResponse.error_response(ERROR_ROLE_NAME_ALREADY_EXISTS)
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_ROLE_NAME_ALREADY_EXISTS)
 
         if updated_by:
             update_dict["updated_by"] = updated_by
@@ -113,7 +114,7 @@ class RoleService:
         role = await update_role(self.db, role_id, update_dict)
         if role:
             return APIResponse.success_response(SUCCESS_ROLE_UPDATED, RoleResponse.model_validate(role))
-        return APIResponse.error_response(ERROR_ROLE_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_ROLE_NOT_FOUND)
 
     async def delete_role_service(self, role_id: UUID, deleted_by: Optional[UUID] = None) -> APIResponse[str]:
         """Soft-delete a role.
@@ -128,4 +129,4 @@ class RoleService:
         response = await delete_role(self.db, role_id, deleted_by)
         if response:
             return APIResponse.success_response(SUCCESS_ROLE_DELETED)
-        return APIResponse.error_response(ERROR_FAILED_TO_DELETE_ROLE)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_FAILED_TO_DELETE_ROLE)

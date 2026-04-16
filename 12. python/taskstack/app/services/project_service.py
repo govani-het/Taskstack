@@ -1,5 +1,6 @@
 """Project service layer."""
 
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
@@ -46,10 +47,10 @@ class ProjectService:
         """
         project = await get_project_by_id(self.db, project_id)
         if not project:
-            return APIResponse.error_response(ERROR_PROJECT_NOT_FOUND)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_PROJECT_NOT_FOUND)
 
         if current_user.get("role") != ROLE_SYSTEM_ADMIN and str(project.organization_id) != current_user.get("organization_id"):
-            return APIResponse.error_response(ERROR_ACCESS_DENIED)
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_ACCESS_DENIED)
 
         return APIResponse.success_response(SUCCESS_PROJECT_FETCHED, ProjectResponse.model_validate(project))
 
@@ -71,7 +72,7 @@ class ProjectService:
         if organization_id:
             return await self.get_projects_by_organization_service(UUID(organization_id), skip, limit)
 
-        return APIResponse.error_response(ERROR_NO_ORGANIZATION_ASSOCIATED)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_NO_ORGANIZATION_ASSOCIATED)
 
     async def get_projects_by_organization_service(self, organization_id: UUID, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectResponse]]:
         """Get projects for an organization.
