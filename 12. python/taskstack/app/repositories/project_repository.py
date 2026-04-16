@@ -7,6 +7,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from app.models.projects import Project
+from app.schemas.project_schemas import ProjectCreate
 
 
 async def get_project_by_id(db: AsyncSession, project_id: UUID) -> Optional[Project]:
@@ -82,3 +83,21 @@ async def get_all_projects(db: AsyncSession, skip: int = 0, limit: int = 100) ->
     )
     result = await db.execute(stmt)
     return result.scalars().all()
+
+async def create_project(db: AsyncSession, project_data: dict) -> Project:
+    """Create a new project.
+
+    Args:
+        db: Database session.
+        project_data: Project creation payload as a dict.
+
+    Returns:
+        Project: Result of the operation.
+    """
+
+    # Build a Project ORM instance from the incoming payload and persist it.
+    project_obj = Project(**project_data)
+    db.add(project_obj)
+    await db.commit()
+    await db.refresh(project_obj)
+    return project_obj

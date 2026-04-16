@@ -9,9 +9,9 @@ from app.repositories.project_repository import (
     get_project_by_id,
     get_projects_by_organization,
     get_all_projects,
+    create_project
 )
-from app.schemas.project_schemas import ProjectResponse
-
+from app.schemas.project_schemas import ProjectResponse, ProjectCreate
 
 from app.schemas.response_schemas import APIResponse
 from app.constant.project_constant import (
@@ -100,3 +100,24 @@ class ProjectService:
         """
         projects = await get_all_projects(self.db, skip, limit)
         return APIResponse.success_response(SUCCESS_ALL_PROJECTS_FETCHED, [ProjectResponse.model_validate(project) for project in projects])
+
+
+    async def create_project_service(self, project_data: ProjectCreate, current_user: dict) -> APIResponse[Optional[ProjectResponse]]:
+        """Create a new project.
+        Args:
+            current_user: Authenticated user payload.
+        """
+
+        project_data_obj = project_data.model_dump()
+        project_data_obj["organization_id"] = current_user.get("organization_id")
+        project_data_obj['created_by'] = current_user.get("id")
+
+        try:
+            response = await create_project(self.db, project_data_obj)
+            return APIResponse.success_response(SUCCESS_PROJECT_FETCHED, ProjectResponse.model_validate(response))
+        except HTTPException:
+            # Propagate HTTP exceptions raised intentionally elsewhere
+            raise
+        except Exception as e:
+            # Convert unexpected errors into HTTP 500 for the API
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
