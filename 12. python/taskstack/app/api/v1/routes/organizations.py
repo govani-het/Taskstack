@@ -11,6 +11,7 @@ from app.services.organization_service import OrganizationService
 from app.authentication.role_base_auth_token import get_current_user
 from app.utils.access_control import require_roles
 from app.schemas.response_schemas import APIResponse
+from app.constant.organizations_constant import ROLE_SYSTEM_ADMIN,ERROR_ORGANIZATION_NOT_FOUND
 
 
 router = APIRouter(
@@ -34,7 +35,7 @@ async def create_organization(
 
 
 @router.get("/{organization_id}", response_model=APIResponse[OrganizationResponse])
-@require_roles(["system admin"])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def get_organization(
     organization_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -71,7 +72,7 @@ async def get_organizations(
 
 
 @router.get("/unapproved/", response_model=APIResponse[List[OrganizationResponse]])
-@require_roles(["system admin"])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def get_unapproved_organizations(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -92,7 +93,7 @@ async def get_unapproved_organizations(
 
 
 @router.put("/{organization_id}", response_model=APIResponse[OrganizationResponse])
-@require_roles(["system admin"])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def update_organization(
     organization_id: UUID,
     update_data: OrganizationUpdate,
@@ -112,7 +113,7 @@ async def update_organization(
 
 
 @router.put("/{organization_id}/approve", response_model=APIResponse[OrganizationResponse])
-@require_roles(["system admin"])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def approve_organization(
     organization_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -128,12 +129,12 @@ async def approve_organization(
     organization_obj = OrganizationService(db)
     response = await organization_obj.approve_organization_service(organization_id, UUID(current_user["id"]))
     if not response.data:
-        return APIResponse.error_response("Organization not found")
+        return APIResponse.error_response(ERROR_ORGANIZATION_NOT_FOUND)
     return response
 
 
 @router.delete("/{organization_id}", response_model=APIResponse[str], status_code=status.HTTP_200_OK)
-@require_roles(["system admin"])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def delete_organization(
     organization_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],

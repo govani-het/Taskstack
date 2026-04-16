@@ -12,6 +12,7 @@ from app.utils.hash_password import hash_password
 from app.models.users import User
 from app.models.roles import Role
 
+from app.constant.organizations_constant import ADMIN_ROLE_NOT_FOUND
 
 async def get_organization_by_id(db: AsyncSession, organization_id: UUID) -> Optional[Organization]:
     """Get organization.
@@ -125,7 +126,7 @@ async def create_organization(db: AsyncSession, organization_data: dict) -> Orga
     result = await db.execute(select(Role).where(Role.name == "admin"))
     admin_role = result.scalars().first()
     if not admin_role:
-        raise Exception("Admin role not found in database")
+        raise Exception(ADMIN_ROLE_NOT_FOUND)
 
     organization = Organization(**organization_data)
     db.add(organization)

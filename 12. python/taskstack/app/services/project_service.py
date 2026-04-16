@@ -13,6 +13,15 @@ from app.schemas.project_schemas import ProjectResponse
 
 
 from app.schemas.response_schemas import APIResponse
+from app.constant.project_constant import (
+    SUCCESS_PROJECT_FETCHED,
+    SUCCESS_PROJECTS_FETCHED,
+    SUCCESS_ALL_PROJECTS_FETCHED,
+    ERROR_PROJECT_NOT_FOUND,
+    ERROR_ACCESS_DENIED,
+    ERROR_NO_ORGANIZATION_ASSOCIATED,
+    ROLE_SYSTEM_ADMIN,
+)
 
 class ProjectService:
     """Provides project business logic."""
@@ -37,12 +46,12 @@ class ProjectService:
         """
         project = await get_project_by_id(self.db, project_id)
         if not project:
-            return APIResponse.error_response("Project not found")
+            return APIResponse.error_response(ERROR_PROJECT_NOT_FOUND)
 
-        if current_user.get("role") != "system admin" and str(project.organization_id) != current_user.get("organization_id"):
-            return APIResponse.error_response("Access denied")
+        if current_user.get("role") != ROLE_SYSTEM_ADMIN and str(project.organization_id) != current_user.get("organization_id"):
+            return APIResponse.error_response(ERROR_ACCESS_DENIED)
 
-        return APIResponse.success_response("Project fetched successfully", ProjectResponse.model_validate(project))
+        return APIResponse.success_response(SUCCESS_PROJECT_FETCHED, ProjectResponse.model_validate(project))
 
     async def get_projects_service(self, current_user: dict, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectResponse]]:
         """Get projects visible to the current user.
@@ -55,14 +64,14 @@ class ProjectService:
         Returns:
             APIResponse[List[ProjectResponse]]: Standardized project list response.
         """
-        if current_user.get("role") == "system admin":
+        if current_user.get("role") == ROLE_SYSTEM_ADMIN:
             return await self.get_all_projects_service(skip, limit)
 
         organization_id = current_user.get("organization_id")
         if organization_id:
             return await self.get_projects_by_organization_service(UUID(organization_id), skip, limit)
 
-        return APIResponse.error_response("No organization associated")
+        return APIResponse.error_response(ERROR_NO_ORGANIZATION_ASSOCIATED)
 
     async def get_projects_by_organization_service(self, organization_id: UUID, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectResponse]]:
         """Get projects for an organization.
@@ -76,7 +85,7 @@ class ProjectService:
             APIResponse[List[ProjectResponse]]: Standardized project list response.
         """
         projects = await get_projects_by_organization(self.db, organization_id, skip, limit)
-        return APIResponse.success_response("Projects fetched successfully", [ProjectResponse.model_validate(project) for project in projects])
+        return APIResponse.success_response(SUCCESS_PROJECTS_FETCHED, [ProjectResponse.model_validate(project) for project in projects])
 
     async def get_all_projects_service(self, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectResponse]]:
         """Get all projects.
@@ -89,4 +98,4 @@ class ProjectService:
             APIResponse[List[ProjectResponse]]: Standardized project list response.
         """
         projects = await get_all_projects(self.db, skip, limit)
-        return APIResponse.success_response("All projects fetched successfully", [ProjectResponse.model_validate(project) for project in projects])
+        return APIResponse.success_response(SUCCESS_ALL_PROJECTS_FETCHED, [ProjectResponse.model_validate(project) for project in projects])

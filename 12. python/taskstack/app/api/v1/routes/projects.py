@@ -11,6 +11,7 @@ from app.services.project_service import ProjectService
 from app.schemas.response_schemas import APIResponse
 from app.authentication.role_base_auth_token import get_current_user
 from app.utils.access_control import require_roles
+from app.constant.project_constant import ROLE_SYSTEM_ADMIN
 
 router = APIRouter(
     prefix="/projects",
@@ -19,7 +20,7 @@ router = APIRouter(
 
 
 @router.get("/all", response_model=APIResponse[List[ProjectResponse]])
-@require_roles(["system admin"])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def get_all_projects(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
