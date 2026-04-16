@@ -8,6 +8,7 @@ from app.repositories.project_member_repository import (
     get_project_members_by_project,
     get_all_project_members,
 )
+from app.repositories.project_repository import get_project_by_id
 from app.schemas.project_member_schemas import ProjectMemberResponse
 
 
@@ -24,19 +25,32 @@ class ProjectMemberService:
         """
         self.db = db
 
-    async def get_project_members_by_project_service(self, project_id: UUID, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectMemberResponse]]:
+    async def get_project_members_by_project_service(self, project_id: UUID, current_user: dict, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectMemberResponse]]:
         """Get members for a project.
 
         Args:
             project_id: Project identifier.
+            current_user: Authenticated user payload.
             skip: Number of records to skip.
             limit: Maximum number of records to return.
 
         Returns:
             APIResponse[List[ProjectMemberResponse]]: Standardized project-member list response.
         """
+        project = await get_project_by_id(self.db, project_id)
+        if not project:
+            return APIResponse.error_response("Project not found")
+
+        if current_user.get("role") != "system admin" and str(project.organization_id) != current_user.get("organization_id"):
+            return APIResponse.error_response("Access denied")
+
         members = await get_project_members_by_project(self.db, project_id, skip, limit)
-        return APIResponse.success_response("Project members fetched successfully", [ProjectMemberResponse.model_validate(member) for member in members])
+        if not members:
+            return APIResponse.error_response("Project member not found")
+        return APIResponse.success_response(
+            "Project members fetched successfully",
+            [ProjectMemberResponse.model_validate(member) for member in members]
+        )
 
     async def get_all_project_members_service(self, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectMemberResponse]]:
         """Get all project members.
