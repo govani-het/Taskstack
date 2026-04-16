@@ -99,5 +99,7 @@ async def create_project(db: AsyncSession, project_data: dict) -> Project:
     project_obj = Project(**project_data)
     db.add(project_obj)
     await db.commit()
+    # Refresh instance to ensure attributes (and defaults) are loaded from DB
     await db.refresh(project_obj)
+
     return project_obj
