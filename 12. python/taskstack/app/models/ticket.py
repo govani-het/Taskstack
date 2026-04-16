@@ -1,3 +1,5 @@
+"""Ticket ORM model."""
+
 import uuid
 
 from sqlalchemy import (
@@ -9,6 +11,7 @@ from sqlalchemy import (
     String,
     UUID,
     UniqueConstraint,
+    Boolean,
 )
 from sqlalchemy.orm import relationship
 
@@ -17,6 +20,7 @@ from app.models.model_columns import ProjectMemberAuditMixin, TimestampRequiredM
 
 
 class Ticket(TimestampRequiredMixin, ProjectMemberAuditMixin, Base):
+    """Represents a ticket record."""
     __tablename__ = "tickets"
     __table_args__ = (
         UniqueConstraint("project_id", "id", name="uq_tickets_project_and_id"),
@@ -60,6 +64,7 @@ class Ticket(TimestampRequiredMixin, ProjectMemberAuditMixin, Base):
     ticket_type = Column(String(50), nullable=True)
     ticket_id = Column(Integer, nullable=True)
     resolved_by = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     project = relationship("Project", back_populates="tickets")
     created_by_member = relationship(

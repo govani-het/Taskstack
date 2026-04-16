@@ -1,17 +1,14 @@
+"""User API routes."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Annotated
 from uuid import UUID
 
 from app.config.database import get_db
 from app.schemas.user_schemas import UserCreate, UserUpdate, UserResponse
-from app.services.user_service import (
-    create_user_service,
-    get_user_service,
-    get_users_service,
-    update_user_service,
-    delete_user_service,
-)
+from app.services.user_service import UserService
+from app.schemas.response_schemas import APIResponse
 from app.authentication.role_base_auth_token import get_current_user
 
 router = APIRouter(
@@ -20,62 +17,89 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=APIResponse[UserResponse], status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_data: UserCreate,
-    db: AsyncSession = Depends(get_db)
+    db: Annotated[AsyncSession, Depends(get_db)]
 ):
-    try:
-        user = await create_user_service(db, user_data)
-        return user
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    """Create a user.
+
+    Args:
+        user_data: User creation payload.
+        db: Database session.
+    """
+    user_obj = UserService(db)
+    return await user_obj.create_user_service(user_data)
 
 
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=APIResponse[UserResponse])
 async def get_user(
     user_id: UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    user = await get_user_service(db, user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return user
+    """Get a user by ID.
+
+    Args:
+        user_id: User identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+    """
+    user_obj = UserService(db)
+    return await user_obj.get_user_service(user_id)
 
 
-@router.get("/", response_model=List[UserResponse])
+@router.get("/", response_model=APIResponse[List[UserResponse]])
 async def get_users(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     skip: int = 0,
     limit: int = 100,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+
 ):
-    return await get_users_service(db, skip, limit)
+    """Get users with pagination.
+
+    Args:
+        db: Database session.
+        current_user: Authenticated user payload.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+    """
+    user_obj = UserService(db)
+    return await user_obj.get_users_service(skip, limit)
 
 
-@router.put("/{user_id}", response_model=UserResponse)
+@router.put("/{user_id}", response_model=APIResponse[UserResponse])
 async def update_user(
     user_id: UUID,
     update_data: UserUpdate,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    try:
-        user = await update_user_service(db, user_id, update_data)
-        if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        return user
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    """Update a user.
+
+    Args:
+        user_id: User identifier.
+        update_data: User update payload.
+        db: Database session.
+        current_user: Authenticated user payload.
+    """
+    user_obj = UserService(db)
+    return await user_obj.update_user_service(user_id, update_data, UUID(current_user["id"]))
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}", response_model=APIResponse[str], status_code=status.HTTP_200_OK)
 async def delete_user(
     user_id: UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    success = await delete_user_service(db, user_id)
-    if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    """Delete a user.
+
+    Args:
+        user_id: User identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+    """
+    user_obj = UserService(db)
+    return await user_obj.delete_user_service(user_id, UUID(current_user["id"]))

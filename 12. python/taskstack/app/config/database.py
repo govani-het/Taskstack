@@ -1,3 +1,5 @@
+"""Database configuration and session management."""
+
 import os
 from typing import AsyncGenerator
 
@@ -21,5 +23,10 @@ Base = declarative_base()
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Yield a database session.
+    
+    Yields:
+        AsyncSession: Database session.
+    """
     async with AsyncSessionLocal() as db:
         yield db

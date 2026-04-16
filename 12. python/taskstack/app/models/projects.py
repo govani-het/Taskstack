@@ -1,3 +1,5 @@
+"""Project ORM model."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, ForeignKey, String, Text, UUID
@@ -8,6 +10,7 @@ from app.models.model_columns import TimestampOptionalMixin, UserAuditMixin
 
 
 class Project(TimestampOptionalMixin, UserAuditMixin, Base):
+    """Represents a project record."""
     __tablename__ = "projects"
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)

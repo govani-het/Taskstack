@@ -1,3 +1,5 @@
+"""Project repository functions."""
+
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +10,15 @@ from app.models.projects import Project
 
 
 async def get_project_by_id(db: AsyncSession, project_id: UUID) -> Optional[Project]:
+    """Get project.
+    
+    Args:
+        db: Database session.
+        project_id: Project identifier.
+    
+    Returns:
+        Optional[Project]: Result of the operation.
+    """
     stmt = (
         select(Project)
         .options(
@@ -22,6 +33,17 @@ async def get_project_by_id(db: AsyncSession, project_id: UUID) -> Optional[Proj
 
 
 async def get_projects_by_organization(db: AsyncSession, organization_id: UUID, skip: int = 0, limit: int = 100) -> List[Project]:
+    """Get projects by organization.
+    
+    Args:
+        db: Database session.
+        organization_id: Organization identifier.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+    
+    Returns:
+        List[Project]: Result of the operation.
+    """
     stmt = (
         select(Project)
         .options(
@@ -38,6 +60,16 @@ async def get_projects_by_organization(db: AsyncSession, organization_id: UUID, 
 
 
 async def get_all_projects(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Project]:
+    """Get all projects.
+    
+    Args:
+        db: Database session.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+    
+    Returns:
+        List[Project]: Result of the operation.
+    """
     stmt = (
         select(Project)
         .options(

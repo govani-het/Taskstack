@@ -1,3 +1,5 @@
+"""Work log ORM model."""
+
 import uuid
 
 from sqlalchemy import (
@@ -7,6 +9,7 @@ from sqlalchemy import (
     Integer,
     String,
     UUID,
+    Boolean,
 )
 from sqlalchemy.orm import relationship
 
@@ -15,6 +18,7 @@ from app.models.model_columns import ProjectMemberAuditMixin, TimestampRequiredM
 
 
 class WorkLog(TimestampRequiredMixin, ProjectMemberAuditMixin, Base):
+    """Represents a work log record."""
     __tablename__ = "work_logs"
     __table_args__ = (
         ForeignKeyConstraint(
@@ -44,6 +48,7 @@ class WorkLog(TimestampRequiredMixin, ProjectMemberAuditMixin, Base):
     ticket_id = Column(UUID(as_uuid=True), ForeignKey("tickets.id"), nullable=False)
     description = Column(String(1000), nullable=True)
     time_spent_minutes = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     ticket = relationship("Ticket", back_populates="work_logs", foreign_keys=[ticket_id])
     created_by_member = relationship(

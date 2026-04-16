@@ -1,3 +1,5 @@
+"""User repository functions."""
+
 from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +10,15 @@ from app.models.users import User
 
 
 async def get_user_by_id(db: AsyncSession, user_id: UUID) -> Optional[User]:
+    """Get user.
+    
+    Args:
+        db: Database session.
+        user_id: User identifier.
+    
+    Returns:
+        Optional[User]: Result of the operation.
+    """
     stmt = (
         select(User)
         .options(selectinload(User.role), selectinload(User.organization))
@@ -18,6 +29,15 @@ async def get_user_by_id(db: AsyncSession, user_id: UUID) -> Optional[User]:
 
 
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
+    """Get user.
+    
+    Args:
+        db: Database session.
+        email: Email address.
+    
+    Returns:
+        Optional[User]: Result of the operation.
+    """
     stmt = (
         select(User)
         .options(selectinload(User.role), selectinload(User.organization))
@@ -28,6 +48,16 @@ async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
 
 
 async def get_users(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[User]:
+    """Get users.
+    
+    Args:
+        db: Database session.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+    
+    Returns:
+        List[User]: Result of the operation.
+    """
     stmt = (
         select(User)
         .options(selectinload(User.role), selectinload(User.organization))
@@ -39,6 +69,15 @@ async def get_users(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[U
 
 
 async def create_user(db: AsyncSession, user_data: dict) -> User:
+    """Create a user.
+    
+    Args:
+        db: Database session.
+        user_data: User creation payload.
+    
+    Returns:
+        User: The created resource.
+    """
     user = User(**user_data)
     db.add(user)
     await db.commit()
@@ -47,6 +86,16 @@ async def create_user(db: AsyncSession, user_data: dict) -> User:
 
 
 async def update_user(db: AsyncSession, user_id: UUID, update_data: dict) -> Optional[User]:
+    """Update a user.
+    
+    Args:
+        db: Database session.
+        user_id: User identifier.
+        update_data: User update payload.
+    
+    Returns:
+        Optional[User]: Result of the operation.
+    """
     stmt = (
         update(User)
         .where(User.id == user_id)
@@ -58,8 +107,21 @@ async def update_user(db: AsyncSession, user_id: UUID, update_data: dict) -> Opt
     return result.scalar_one_or_none()
 
 
-async def delete_user(db: AsyncSession, user_id: UUID) -> bool:
-    stmt = delete(User).where(User.id == user_id)
+async def delete_user(db: AsyncSession, user_id: UUID, deleted_by: Optional[UUID] = None) -> bool:
+    """Delete a user.
+    
+    Args:
+        db: Database session.
+        user_id: User identifier.
+        deleted_by: Identifier of the user deleting the record.
+    
+    Returns:
+        bool: Whether the operation succeeded.
+    """
+    update_data = {"is_active": False}
+    if deleted_by:
+        update_data["deleted_by"] = deleted_by
+    stmt = update(User).where(User.id == user_id).values(**update_data)
     result = await db.execute(stmt)
     await db.commit()
     return result.rowcount > 0

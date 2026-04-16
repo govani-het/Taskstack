@@ -1,8 +1,9 @@
+"""Authentication token utilities."""
+
 from datetime import datetime, timedelta, timezone
 import os
+from typing import Annotated
 
-
-import constant
 from jose import jwt, JWTError
 from fastapi import HTTPException, status
 from dotenv import load_dotenv
@@ -21,6 +22,16 @@ def create_token(
     token_type: str = "access",
     expires_delta: timedelta | None = None
 ):
+    """Create a signed JWT token.
+    
+    Args:
+        data: Claims to encode in the token.
+        token_type: Type of token to create.
+        expires_delta: Custom token lifetime.
+    
+    Raises:
+        ValueError: If the provided values are invalid.
+    """
     to_encode = data.copy()
 
     if expires_delta:
@@ -49,7 +60,12 @@ def create_token(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    """Get the current user from the bearer token.
+    
+    Args:
+        token: JWT token string.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -60,6 +76,15 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
 
 def verify_token(token: str, credentials_exception):
+    """Decode and validate a JWT token.
+    
+    Args:
+        token: JWT token string.
+        credentials_exception: Exception to raise when token validation fails.
+    
+    Raises:
+        credentials_exception: If the operation fails.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
@@ -72,6 +97,5 @@ def verify_token(token: str, credentials_exception):
         return {"email": email, "id": user_id, "role": role, "organization_id": organization_id}
     except JWTError:
         raise credentials_exception
-
 
 

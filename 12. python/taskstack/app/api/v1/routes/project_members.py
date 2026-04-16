@@ -1,16 +1,16 @@
+"""Project member API routes."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Annotated
 from uuid import UUID
 
 from app.config.database import get_db
 from app.schemas.project_member_schemas import ProjectMemberResponse
-from app.services.project_member_service import (
-    get_project_members_by_project_service,
-    get_all_project_members_service,
-)
+from app.services.project_member_service import ProjectMemberService
+from app.schemas.response_schemas import APIResponse
 from app.authentication.role_base_auth_token import get_current_user
-from app.utils.access_control import check_allowed_roles
+from app.utils.access_control import require_roles
 
 router = APIRouter(
     prefix="/project-members",
@@ -18,25 +18,48 @@ router = APIRouter(
 )
 
 
-@router.get("/all", response_model=List[ProjectMemberResponse])
+@router.get("/all", response_model=APIResponse[List[ProjectMemberResponse]])
+@require_roles(["system admin"])
 async def get_all_project_members(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     skip: int = 0,
     limit: int = 100,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    
 ):
-    check_allowed_roles(current_user, ["system admin"], "view all project members")
-    return await get_all_project_members_service(db, skip, limit)
+    """Get all project members.
+
+    Args:
+        db: Database session.
+        current_user: Authenticated user payload.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+    """
+    member_obj = ProjectMemberService(db)
+    return await member_obj.get_all_project_members_service(skip, limit)
 
 
-@router.get("/project/{project_id}", response_model=List[ProjectMemberResponse])
+@router.get("/project/{project_id}", response_model=APIResponse[List[ProjectMemberResponse]])
 async def get_project_members(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     project_id: UUID,
     skip: int = 0,
     limit: int = 100,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    
 ):
+    """Get members for a specific project.
+
+    Args:
+        db: Database session.
+        current_user: Authenticated user payload.
+        project_id: Project identifier.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+
+    Raises:
+        HTTPException: If the project is missing or the user lacks access.
+    """
     # Check if user has access to this project
     from app.repositories.project_repository import get_project_by_id
     project = await get_project_by_id(db, project_id)
@@ -50,4 +73,5 @@ async def get_project_members(
             detail="Access denied"
         )
 
-    return await get_project_members_by_project_service(db, project_id, skip, limit)
+    member_obj = ProjectMemberService(db)
+    return await member_obj.get_project_members_by_project_service(project_id, skip, limit)
