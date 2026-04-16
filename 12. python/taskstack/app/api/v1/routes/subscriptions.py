@@ -1,19 +1,16 @@
+"""Subscription API routes."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Annotated
 from uuid import UUID
 
 from app.config.database import get_db
 from app.schemas.subscription_schemas import SubscriptionCreate, SubscriptionUpdate, SubscriptionResponse
-from app.services.subscription_service import (
-    create_subscription_service,
-    get_subscription_service,
-    get_subscriptions_service,
-    update_subscription_service,
-    delete_subscription_service,
-)
+from app.services.subscription_service import SubscriptionService
+from app.schemas.response_schemas import APIResponse
 from app.authentication.role_base_auth_token import get_current_user
-from app.utils.access_control import check_allowed_roles
+from app.utils.access_control import require_roles
 
 router = APIRouter(
     prefix="/subscriptions",
@@ -21,69 +18,94 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=SubscriptionResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=APIResponse[SubscriptionResponse], status_code=status.HTTP_201_CREATED)
+@require_roles(["system admin"])
 async def create_subscription(
     subscription_data: SubscriptionCreate,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    check_allowed_roles(current_user, ["system admin"], "create subscription plans")
+    """Create a subscription.
 
-    try:
-        subscription = await create_subscription_service(db, subscription_data)
-        return subscription
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    Args:
+        subscription_data: Subscription creation payload.
+        db: Database session.
+        current_user: Authenticated user payload.
+    """
+    subscription_obj = SubscriptionService(db)
+    return await subscription_obj.create_subscription_service(subscription_data)
 
 
-@router.get("/{subscription_id}", response_model=SubscriptionResponse)
+@router.get("/{subscription_id}", response_model=APIResponse[SubscriptionResponse])
 async def get_subscription(
     subscription_id: UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    subscription = await get_subscription_service(db, subscription_id)
-    if not subscription:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subscription not found")
-    return subscription
+    """Get a subscription by ID.
+
+    Args:
+        subscription_id: Subscription identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+    """
+    subscription_obj = SubscriptionService(db)
+    return await subscription_obj.get_subscription_service(subscription_id)
 
 
-@router.get("/", response_model=List[SubscriptionResponse])
+@router.get("/", response_model=APIResponse[List[SubscriptionResponse]])
 async def get_subscriptions(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     skip: int = 0,
     limit: int = 100,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+
 ):
-    return await get_subscriptions_service(db, skip, limit)
+    """Get subscriptions with pagination.
+
+    Args:
+        db: Database session.
+        current_user: Authenticated user payload.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+    """
+    subscription_obj = SubscriptionService(db)
+    return await subscription_obj.get_subscriptions_service(skip, limit)
 
 
-@router.put("/{subscription_id}", response_model=SubscriptionResponse)
+@router.put("/{subscription_id}", response_model=APIResponse[SubscriptionResponse])
+@require_roles(["system admin"])
 async def update_subscription(
     subscription_id: UUID,
     update_data: SubscriptionUpdate,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    check_allowed_roles(current_user, ["system admin"], "update subscription plans")
+    """Update a subscription.
 
-    try:
-        subscription = await update_subscription_service(db, subscription_id, update_data)
-        if not subscription:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subscription not found")
-        return subscription
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    Args:
+        subscription_id: Subscription identifier.
+        update_data: Subscription update payload.
+        db: Database session.
+        current_user: Authenticated user payload.
+    """
+    subscription_obj = SubscriptionService(db)
+    return await subscription_obj.update_subscription_service(subscription_id, update_data, UUID(current_user["id"]))
 
 
-@router.delete("/{subscription_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{subscription_id}", response_model=APIResponse[str], status_code=status.HTTP_200_OK)
+@require_roles(["system admin"])
 async def delete_subscription(
     subscription_id: UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    check_allowed_roles(current_user, ["system admin"], "delete subscription plans")
+    """Delete a subscription.
 
-    success = await delete_subscription_service(db, subscription_id)
-    if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subscription not found")
+    Args:
+        subscription_id: Subscription identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+    """
+    subscription_obj = SubscriptionService(db)
+    return await subscription_obj.delete_subscription_service(subscription_id, UUID(current_user["id"]))

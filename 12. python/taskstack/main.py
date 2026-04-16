@@ -1,3 +1,5 @@
+"""Application entry point."""
+
 
 from fastapi import FastAPI
 from starlette import status
@@ -11,5 +13,5 @@ app.include_router(v1_router)
 
 @app.get("/", status_code=status.HTTP_200_OK)
 def index():
+    """Return the application status message."""
     return {"message": "Hello World"}
-

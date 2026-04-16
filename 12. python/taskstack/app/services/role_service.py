@@ -1,3 +1,5 @@
+"""Role service layer."""
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
@@ -14,43 +16,105 @@ from app.repositories.role_repository import (
 from app.schemas.role_schemas import RoleCreate, RoleUpdate, RoleResponse
 
 
-async def create_role_service(db: AsyncSession, role_data: RoleCreate) -> RoleResponse:
-    # Check if role name already exists
-    existing_role = await get_role_by_name(db, role_data.name)
-    if existing_role:
-        raise ValueError("Role name already exists")
+from app.schemas.response_schemas import APIResponse
 
-    role_dict = role_data.model_dump()
-    role = await create_role(db, role_dict)
-    return RoleResponse.model_validate(role)
+class RoleService:
+    """Provides role business logic."""
 
+    def __init__(self, db: AsyncSession):
+        """Initialize the service.
 
-async def get_role_service(db: AsyncSession, role_id: UUID) -> Optional[RoleResponse]:
-    role = await get_role_by_id(db, role_id)
-    if role:
-        return RoleResponse.model_validate(role)
-    return None
+        Args:
+            db: Database session.
+        """
+        self.db = db
 
+    async def create_role_service(self, role_data: RoleCreate) -> APIResponse[RoleResponse]:
+        """Create a role.
 
-async def get_roles_service(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[RoleResponse]:
-    roles = await get_roles(db, skip, limit)
-    return [RoleResponse.model_validate(role) for role in roles]
+        Args:
+            role_data: Role creation payload.
 
+        Returns:
+            APIResponse[RoleResponse]: Standardized role creation response.
+        """
+        # Check if role name already exists
+        existing_role = await get_role_by_name(self.db, role_data.name)
+        if existing_role:
+            return APIResponse.error_response("Role name already exists")
 
-async def update_role_service(db: AsyncSession, role_id: UUID, update_data: RoleUpdate) -> Optional[RoleResponse]:
-    update_dict = update_data.model_dump(exclude_unset=True)
+        role_dict = role_data.model_dump()
+        try:
+            role = await create_role(self.db, role_dict)
+            return APIResponse.success_response("Role created successfully", RoleResponse.model_validate(role))
+        except Exception as e:
+            return APIResponse.error_response(str(e))
 
-    # Check name uniqueness if changing name
-    if "name" in update_dict:
-        existing_role = await get_role_by_name(db, update_dict["name"])
-        if existing_role and existing_role.id != role_id:
-            raise ValueError("Role name already exists")
+    async def get_role_service(self, role_id: UUID) -> APIResponse[Optional[RoleResponse]]:
+        """Get a role by ID.
 
-    role = await update_role(db, role_id, update_dict)
-    if role:
-        return RoleResponse.model_validate(role)
-    return None
+        Args:
+            role_id: Role identifier.
 
+        Returns:
+            APIResponse[Optional[RoleResponse]]: Standardized role lookup response.
+        """
+        role = await get_role_by_id(self.db, role_id)
+        if role:
+            return APIResponse.success_response("Role fetched successfully", RoleResponse.model_validate(role))
+        return APIResponse.error_response("Role not found")
 
-async def delete_role_service(db: AsyncSession, role_id: UUID) -> bool:
-    return await delete_role(db, role_id)
+    async def get_roles_service(self, skip: int = 0, limit: int = 100) -> APIResponse[List[RoleResponse]]:
+        """Get roles with pagination.
+
+        Args:
+            skip: Number of records to skip.
+            limit: Maximum number of records to return.
+
+        Returns:
+            APIResponse[List[RoleResponse]]: Standardized role list response.
+        """
+        roles = await get_roles(self.db, skip, limit)
+        return APIResponse.success_response("Roles fetched successfully", [RoleResponse.model_validate(role) for role in roles])
+
+    async def update_role_service(self, role_id: UUID, update_data: RoleUpdate, updated_by: Optional[UUID] = None) -> APIResponse[Optional[RoleResponse]]:
+        """Update a role.
+
+        Args:
+            role_id: Role identifier.
+            update_data: Role update payload.
+            updated_by: Identifier of the user updating the record.
+
+        Returns:
+            APIResponse[Optional[RoleResponse]]: Standardized role update response.
+        """
+        update_dict = update_data.model_dump(exclude_unset=True)
+
+        # Check name uniqueness if changing name
+        if "name" in update_dict:
+            existing_role = await get_role_by_name(self.db, update_dict["name"])
+            if existing_role and existing_role.id != role_id:
+                return APIResponse.error_response("Role name already exists")
+
+        if updated_by:
+            update_dict["updated_by"] = updated_by
+
+        role = await update_role(self.db, role_id, update_dict)
+        if role:
+            return APIResponse.success_response("Role updated successfully", RoleResponse.model_validate(role))
+        return APIResponse.error_response("Role not found")
+
+    async def delete_role_service(self, role_id: UUID, deleted_by: Optional[UUID] = None) -> APIResponse[str]:
+        """Soft-delete a role.
+
+        Args:
+            role_id: Role identifier.
+            deleted_by: Identifier of the user deleting the record.
+
+        Returns:
+            APIResponse[str]: Standardized role deletion response.
+        """
+        response = await delete_role(self.db, role_id, deleted_by)
+        if response:
+            return APIResponse.success_response("Role deleted successfully")
+        return APIResponse.error_response("Failed to delete role")

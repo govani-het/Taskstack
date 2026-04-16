@@ -1,3 +1,5 @@
+"""Organization schema definitions."""
+
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from uuid import UUID
@@ -5,18 +7,21 @@ from datetime import datetime
 
 
 class OrganizationBase(BaseModel):
+    """Base schema for organization data."""
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     subscription_plan_id: Optional[UUID] = None
 
 
 class OrganizationCreate(OrganizationBase):
+    """Schema for creating an organization."""
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
     password: str = Field(..., min_length=8)
 
 
 class OrganizationUpdate(BaseModel):
+    """Schema for updating an organization."""
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[EmailStr] = None
     subscription_plan_id: Optional[UUID] = None
@@ -24,6 +29,7 @@ class OrganizationUpdate(BaseModel):
 
 
 class OrganizationResponse(OrganizationBase):
+    """Schema for organization responses."""
     id: UUID
     is_approved: bool
     subscribe_at: Optional[datetime] = None

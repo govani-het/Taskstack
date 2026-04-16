@@ -1,3 +1,5 @@
+"""Comment ORM model."""
+
 import uuid
 
 from sqlalchemy import (
@@ -7,6 +9,7 @@ from sqlalchemy import (
     String,
     UUID,
     UniqueConstraint,
+    Boolean,
 )
 from sqlalchemy.orm import relationship
 
@@ -15,6 +18,7 @@ from app.models.model_columns import ProjectMemberAuditMixin, TimestampRequiredM
 
 
 class Comment(TimestampRequiredMixin, ProjectMemberAuditMixin, Base):
+    """Represents a comment record."""
     __tablename__ = "comments"
     __table_args__ = (
         UniqueConstraint("project_id", "id", name="uq_comments_project_and_id"),
@@ -44,6 +48,7 @@ class Comment(TimestampRequiredMixin, ProjectMemberAuditMixin, Base):
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
     ticket_id = Column(UUID(as_uuid=True), ForeignKey("tickets.id"), nullable=False)
     comment = Column(String(1000), nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     ticket = relationship("Ticket", back_populates="comments", foreign_keys=[ticket_id])
     created_by_member = relationship(

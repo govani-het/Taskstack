@@ -1,3 +1,5 @@
+"""Alembic environment configuration."""
+
 import asyncio
 import os
 from logging.config import fileConfig
@@ -73,6 +75,11 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
+    """Run Alembic migrations with the provided connection.
+    
+    Args:
+        connection: Connection.
+    """
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():

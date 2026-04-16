@@ -1,3 +1,5 @@
+"""Project schema definitions."""
+
 from pydantic import BaseModel, Field
 from typing import Optional
 from uuid import UUID
@@ -5,20 +7,24 @@ from datetime import datetime
 
 
 class OrganizationInfo(BaseModel):
+    """Compact schema for organization information."""
     name: str
 
 
 class ProjectBase(BaseModel):
+    """Base schema for project data."""
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
     organization_id: UUID
 
 
 class ProjectCreate(ProjectBase):
+    """Schema for creating a project."""
     pass
 
 
 class ProjectUpdate(BaseModel):
+    """Schema for updating a project."""
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = None
     organization_id: Optional[UUID] = None
@@ -26,6 +32,7 @@ class ProjectUpdate(BaseModel):
 
 
 class ProjectResponse(ProjectBase):
+    """Schema for project responses."""
     id: UUID
     is_active: bool
     organization: Optional[OrganizationInfo] = None

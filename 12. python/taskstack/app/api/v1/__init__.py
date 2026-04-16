@@ -1,3 +1,5 @@
+"""Version 1 API package."""
+
 from fastapi import APIRouter
 
 from .routes.users import router as users_router

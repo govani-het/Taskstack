@@ -1,3 +1,5 @@
+"""Response schema definitions."""
+
 from typing import Generic, TypeVar, Optional
 from pydantic import BaseModel
 
@@ -5,9 +7,10 @@ from pydantic import BaseModel
 DataT = TypeVar('DataT')
 
 class APIResponse(BaseModel, Generic[DataT]):
-    success: Optional[bool] = None
-    error: Optional[bool] = None
-    message: str
+    """Standard response envelope for API endpoints."""
+    success: bool
+    error: Optional[str] = None
+    message: Optional[str] = None
     data: Optional[DataT] = None
 
     @classmethod
@@ -24,8 +27,8 @@ class APIResponse(BaseModel, Generic[DataT]):
     def error_response(cls, message: str) -> "APIResponse[DataT]":
         """Generates a standardized error response."""
         return cls(
-            success=None,
-            error=True,
-            message=message,
+            success=False,
+            error=message,
+            message=None,
             data=None
         )

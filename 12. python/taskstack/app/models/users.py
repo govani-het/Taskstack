@@ -1,3 +1,5 @@
+"""User ORM model."""
+
 
 import uuid
 
@@ -9,6 +11,7 @@ from app.models.model_columns import TimestampRequiredMixin, UserAuditMixin
 
 
 class User(TimestampRequiredMixin, UserAuditMixin, Base):
+    """Represents a user record."""
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
@@ -20,7 +23,7 @@ class User(TimestampRequiredMixin, UserAuditMixin, Base):
     organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
 
-    role = relationship("Role", back_populates="users")
+    role = relationship("Role", back_populates="users", foreign_keys=[role_id])
     organization = relationship("Organization",back_populates="users",foreign_keys=[organization_id])
 
     created_by_user = relationship("User", remote_side=[id], foreign_keys="User.created_by")
