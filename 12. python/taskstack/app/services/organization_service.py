@@ -18,6 +18,28 @@ from app.repositories.organization_repository import (
 from app.repositories.subscription_repository import get_subscription_by_id
 from app.schemas.organization_schemas import OrganizationCreate, OrganizationUpdate, OrganizationResponse
 from app.schemas.response_schemas import APIResponse
+from app.constant.organizations_constant import (
+    SUCCESS_ORGANIZATION_CREATED,
+    SUCCESS_ORGANIZATION_FETCHED,
+    SUCCESS_ORGANIZATIONS_FETCHED,
+    SUCCESS_ORGANIZATION_FETCHED_BY_ID,
+    SUCCESS_UNAPPROVED_ORGANIZATIONS_FETCHED,
+    SUCCESS_ORGANIZATION_UPDATED,
+    SUCCESS_ORGANIZATION_APPROVED,
+    SUCCESS_ORGANIZATION_DELETED,
+    ERROR_FAILED_TO_CREATE_ORGANIZATION,
+    ERROR_FAILED_TO_FETCH_ORGANIZATION,
+    ERROR_FAILED_TO_FETCH_ORGANIZATIONS,
+    ERROR_ORGANIZATION_NOT_FOUND,
+    ERROR_NO_ORGANIZATION_ASSOCIATED,
+    ERROR_FAILED_TO_FETCH_UNAPPROVED_ORGANIZATIONS,
+    ERROR_INVALID_SUBSCRIPTION_PLAN_ID,
+    ERROR_ORGANIZATION_EMAIL_ALREADY_REGISTERED,
+    ERROR_FAILED_TO_UPDATE_ORGANIZATION,
+    ERROR_FAILED_TO_APPROVE_ORGANIZATION,
+    ERROR_FAILED_TO_DELETE_ORGANIZATION,
+    ROLE_SYSTEM_ADMIN,
+)
 
 class OrganizationService:
     """Provides organization business logic."""
@@ -69,8 +91,8 @@ class OrganizationService:
         try:
             organization = await create_organization(self.db, organization_dict)
             if not organization:
-                return APIResponse.error_response("Failed to create organization")
-            return APIResponse.success_response("Organization created successfully", OrganizationResponse.model_validate(organization))
+                return APIResponse.error_response(ERROR_FAILED_TO_CREATE_ORGANIZATION)
+            return APIResponse.success_response(SUCCESS_ORGANIZATION_CREATED, OrganizationResponse.model_validate(organization))
         except Exception as e:
             return APIResponse.error_response(str(e))
 
@@ -86,8 +108,8 @@ class OrganizationService:
 
         organization = await get_organization_by_id(self.db, organization_id)
         if organization:
-            return APIResponse.success_response("Organization Fetch Successfully.", OrganizationResponse.model_validate(organization))
-        return APIResponse.error_response("Failed to fetch organization")
+            return APIResponse.success_response(SUCCESS_ORGANIZATION_FETCHED, OrganizationResponse.model_validate(organization))
+        return APIResponse.error_response(ERROR_FAILED_TO_FETCH_ORGANIZATION)
 
     async def get_organizations_service(self, current_user: dict, skip: int = 0, limit: int = 100) -> APIResponse[List[OrganizationResponse]]:
         """Get organizations visible to the current user.
@@ -103,9 +125,9 @@ class OrganizationService:
         if current_user.get("role") == "system admin":
             organizations = await get_organizations(self.db, skip, limit)
             if not organizations:
-                return APIResponse.error_response("Failed to fetch organizations")
+                return APIResponse.error_response(ERROR_FAILED_TO_FETCH_ORGANIZATIONS)
             return APIResponse.success_response(
-                "SuccessFully fetch all organizations",
+                SUCCESS_ORGANIZATIONS_FETCHED,
                 [OrganizationResponse.model_validate(organization) for organization in organizations],
             )
 
@@ -113,12 +135,12 @@ class OrganizationService:
             organization_response = await self.get_organization_service(UUID(current_user["organization_id"]))
             if organization_response.data:
                 return APIResponse.success_response(
-                    "Organization fetched successfully",
+                    SUCCESS_ORGANIZATION_FETCHED_BY_ID,
                     [organization_response.data],
                 )
-            return APIResponse.error_response("Organization not found")
+            return APIResponse.error_response(ERROR_ORGANIZATION_NOT_FOUND)
 
-        return APIResponse.error_response("No organization associated")
+        return APIResponse.error_response(ERROR_NO_ORGANIZATION_ASSOCIATED)
 
     async def get_unapproved_organizations_service(self, skip: int = 0, limit: int = 100) -> APIResponse[List[OrganizationResponse]]:
         """Get unapproved organizations with pagination.
@@ -132,9 +154,9 @@ class OrganizationService:
         """
         organizations = await get_unapproved_organizations(self.db, skip, limit)
         if not organizations:
-            return APIResponse.error_response("Failed to fetch unapproved organizations")
+            return APIResponse.error_response(ERROR_FAILED_TO_FETCH_UNAPPROVED_ORGANIZATIONS)
 
-        return APIResponse.success_response("Successfully Fetch unapproved organization", [OrganizationResponse.model_validate(organization) for organization in organizations])
+        return APIResponse.success_response(SUCCESS_UNAPPROVED_ORGANIZATIONS_FETCHED, [OrganizationResponse.model_validate(organization) for organization in organizations])
 
 
     async def update_organization_service(self, organization_id: UUID, update_data: OrganizationUpdate, updated_by: Optional[UUID] = None) -> APIResponse[Optional[OrganizationResponse]]:
@@ -151,20 +173,20 @@ class OrganizationService:
         update_dict = update_data.model_dump(exclude_unset=True)
 
         if "subscription_plan_id" in update_dict and update_dict["subscription_plan_id"] and not await self.validate_subscription_exists(update_dict["subscription_plan_id"]):
-            return APIResponse.error_response("Invalid subscription plan ID")
+            return APIResponse.error_response(ERROR_INVALID_SUBSCRIPTION_PLAN_ID)
 
         if "email" in update_dict:
             existing_organization = await get_organization_by_email(self.db, update_dict["email"])
             if existing_organization and existing_organization.id != organization_id:
-                return APIResponse.error_response("Organization email already registered")
+                return APIResponse.error_response(ERROR_ORGANIZATION_EMAIL_ALREADY_REGISTERED)
 
         if updated_by:
             update_dict["updated_by"] = updated_by
 
         organization = await update_organization(self.db, organization_id, update_dict)
         if organization:
-            return APIResponse.success_response("Successfully Update Organization", OrganizationResponse.model_validate(organization))
-        return APIResponse.error_response("Failed to Update Organization")
+            return APIResponse.success_response(SUCCESS_ORGANIZATION_UPDATED, OrganizationResponse.model_validate(organization))
+        return APIResponse.error_response(ERROR_FAILED_TO_UPDATE_ORGANIZATION)
 
 
     async def approve_organization_service(self, organization_id: UUID, approved_by: UUID) -> APIResponse[Optional[OrganizationResponse]]:
@@ -179,8 +201,8 @@ class OrganizationService:
         """
         response = await self.update_organization_service(organization_id, OrganizationUpdate(is_approved=True), approved_by)
         if response:
-            return APIResponse.success_response("Successfully Approved Organization")
-        return APIResponse.error_response("Failed to Approve Organization")
+            return APIResponse.success_response(SUCCESS_ORGANIZATION_APPROVED)
+        return APIResponse.error_response(ERROR_FAILED_TO_APPROVE_ORGANIZATION)
 
     async def delete_organization_service(self, organization_id: UUID, deleted_by: Optional[UUID] = None) -> APIResponse[str]:
         """Soft-delete an organization.
@@ -194,5 +216,5 @@ class OrganizationService:
         """
         response = await delete_organization(self.db, organization_id, deleted_by)
         if not response:
-            return APIResponse.error_response("Failed to Delete Organization")
-        return APIResponse.success_response("Successfully Delete Organization")
+            return APIResponse.error_response(ERROR_FAILED_TO_DELETE_ORGANIZATION)
+        return APIResponse.success_response(SUCCESS_ORGANIZATION_DELETED)

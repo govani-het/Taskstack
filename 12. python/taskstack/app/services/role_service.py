@@ -17,6 +17,17 @@ from app.schemas.role_schemas import RoleCreate, RoleUpdate, RoleResponse
 
 
 from app.schemas.response_schemas import APIResponse
+from app.constant.role_constant import (
+    SUCCESS_ROLE_CREATED,
+    SUCCESS_ROLE_FETCHED,
+    SUCCESS_ROLES_FETCHED,
+    SUCCESS_ROLE_UPDATED,
+    SUCCESS_ROLE_DELETED,
+    ERROR_ROLE_NAME_ALREADY_EXISTS,
+    ERROR_ROLE_NOT_FOUND,
+    ERROR_FAILED_TO_DELETE_ROLE,
+    ROLE_SYSTEM_ADMIN,
+)
 
 class RoleService:
     """Provides role business logic."""
@@ -41,12 +52,12 @@ class RoleService:
         # Check if role name already exists
         existing_role = await get_role_by_name(self.db, role_data.name)
         if existing_role:
-            return APIResponse.error_response("Role name already exists")
+            return APIResponse.error_response(ERROR_ROLE_NAME_ALREADY_EXISTS)
 
         role_dict = role_data.model_dump()
         try:
             role = await create_role(self.db, role_dict)
-            return APIResponse.success_response("Role created successfully", RoleResponse.model_validate(role))
+            return APIResponse.success_response(SUCCESS_ROLE_CREATED, RoleResponse.model_validate(role))
         except Exception as e:
             return APIResponse.error_response(str(e))
 
@@ -61,8 +72,8 @@ class RoleService:
         """
         role = await get_role_by_id(self.db, role_id)
         if role:
-            return APIResponse.success_response("Role fetched successfully", RoleResponse.model_validate(role))
-        return APIResponse.error_response("Role not found")
+            return APIResponse.success_response(SUCCESS_ROLE_FETCHED, RoleResponse.model_validate(role))
+        return APIResponse.error_response(ERROR_ROLE_NOT_FOUND)
 
     async def get_roles_service(self, skip: int = 0, limit: int = 100) -> APIResponse[List[RoleResponse]]:
         """Get roles with pagination.
@@ -75,7 +86,7 @@ class RoleService:
             APIResponse[List[RoleResponse]]: Standardized role list response.
         """
         roles = await get_roles(self.db, skip, limit)
-        return APIResponse.success_response("Roles fetched successfully", [RoleResponse.model_validate(role) for role in roles])
+        return APIResponse.success_response(SUCCESS_ROLES_FETCHED, [RoleResponse.model_validate(role) for role in roles])
 
     async def update_role_service(self, role_id: UUID, update_data: RoleUpdate, updated_by: Optional[UUID] = None) -> APIResponse[Optional[RoleResponse]]:
         """Update a role.
@@ -94,15 +105,15 @@ class RoleService:
         if "name" in update_dict:
             existing_role = await get_role_by_name(self.db, update_dict["name"])
             if existing_role and existing_role.id != role_id:
-                return APIResponse.error_response("Role name already exists")
+                return APIResponse.error_response(ERROR_ROLE_NAME_ALREADY_EXISTS)
 
         if updated_by:
             update_dict["updated_by"] = updated_by
 
         role = await update_role(self.db, role_id, update_dict)
         if role:
-            return APIResponse.success_response("Role updated successfully", RoleResponse.model_validate(role))
-        return APIResponse.error_response("Role not found")
+            return APIResponse.success_response(SUCCESS_ROLE_UPDATED, RoleResponse.model_validate(role))
+        return APIResponse.error_response(ERROR_ROLE_NOT_FOUND)
 
     async def delete_role_service(self, role_id: UUID, deleted_by: Optional[UUID] = None) -> APIResponse[str]:
         """Soft-delete a role.
@@ -116,5 +127,5 @@ class RoleService:
         """
         response = await delete_role(self.db, role_id, deleted_by)
         if response:
-            return APIResponse.success_response("Role deleted successfully")
-        return APIResponse.error_response("Failed to delete role")
+            return APIResponse.success_response(SUCCESS_ROLE_DELETED)
+        return APIResponse.error_response(ERROR_FAILED_TO_DELETE_ROLE)
