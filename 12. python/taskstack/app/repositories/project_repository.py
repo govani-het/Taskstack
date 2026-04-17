@@ -7,6 +7,8 @@ from typing import List, Optional
 from uuid import UUID
 
 from app.models.projects import Project
+from app.models.project_member import ProjectMember
+from app.models.users import User
 from app.schemas.project_schemas import ProjectCreate
 
 
@@ -24,8 +26,8 @@ async def get_project_by_id(db: AsyncSession, project_id: UUID) -> Optional[Proj
         select(Project)
         .options(
             selectinload(Project.organization),
-            selectinload(Project.members).selectinload("user").selectinload("role"),
-            selectinload(Project.members).selectinload("role")
+            selectinload(Project.members).selectinload(ProjectMember.user).selectinload(User.role),
+            selectinload(Project.members).selectinload(ProjectMember.role)
         )
         .where(Project.id == project_id)
     )
@@ -49,8 +51,8 @@ async def get_projects_by_organization(db: AsyncSession, organization_id: UUID, 
         select(Project)
         .options(
             selectinload(Project.organization),
-            selectinload(Project.members).selectinload("user").selectinload("role"),
-            selectinload(Project.members).selectinload("role")
+            selectinload(Project.members).selectinload(ProjectMember.user).selectinload(User.role),
+            selectinload(Project.members).selectinload(ProjectMember.role)
         )
         .where(Project.organization_id == organization_id)
         .offset(skip)
@@ -75,8 +77,8 @@ async def get_all_projects(db: AsyncSession, skip: int = 0, limit: int = 100) ->
         select(Project)
         .options(
             selectinload(Project.organization),
-            selectinload(Project.members).selectinload("user").selectinload("role"),
-            selectinload(Project.members).selectinload("role")
+            selectinload(Project.members).selectinload(ProjectMember.user).selectinload(User.role),
+            selectinload(Project.members).selectinload(ProjectMember.role)
         )
         .offset(skip)
         .limit(limit)
@@ -95,11 +97,11 @@ async def create_project(db: AsyncSession, project_data: dict) -> Project:
         Project: Result of the operation.
     """
 
-    # Build a Project ORM instance from the incoming payload and persist it.
     project_obj = Project(**project_data)
     db.add(project_obj)
     await db.commit()
-    # Refresh instance to ensure attributes (and defaults) are loaded from DB
-    await db.refresh(project_obj)
+   
+
+    await db.refresh(project_obj, attribute_names=["organization"])
 
     return project_obj

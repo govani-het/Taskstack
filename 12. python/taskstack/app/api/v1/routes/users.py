@@ -11,6 +11,9 @@ from app.services.user_service import UserService
 from app.schemas.response_schemas import APIResponse
 from app.authentication.role_base_auth_token import get_current_user
 
+from app.constant.role_constant import ROLE_SYSTEM_ADMIN,ROLE_ADMIN,ROLE_DEVELOPER,ROLE_PROJECT_MANAGER,ROLE_TESTER
+from app.utils.access_control import require_roles
+
 router = APIRouter(
     prefix="/users",
     tags=["users"],
@@ -33,6 +36,7 @@ async def create_user(
 
 
 @router.get("/{user_id}", response_model=APIResponse[UserResponse])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def get_user(
     user_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -50,6 +54,7 @@ async def get_user(
 
 
 @router.get("/", response_model=APIResponse[List[UserResponse]])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def get_users(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -70,6 +75,7 @@ async def get_users(
 
 
 @router.put("/{user_id}", response_model=APIResponse[UserResponse])
+@require_roles([ROLE_ADMIN,ROLE_DEVELOPER,ROLE_PROJECT_MANAGER,ROLE_TESTER])
 async def update_user(
     user_id: UUID,
     update_data: UserUpdate,

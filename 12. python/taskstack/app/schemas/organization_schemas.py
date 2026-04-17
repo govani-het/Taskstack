@@ -12,6 +12,12 @@ class OrganizationBase(BaseModel):
     email: EmailStr
     subscription_plan_id: Optional[UUID] = None
 
+class OrganizationInfo(BaseModel):
+    """Compact schema for organization information."""
+    name: str
+
+    class Config:
+        from_attributes = True
 
 class OrganizationCreate(OrganizationBase):
     """Schema for creating an organization."""

@@ -19,6 +19,7 @@ class ProjectMember(Base):
     is_active = Column(Boolean, default=True, nullable=False)
 
     project_manager_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+
     project_manager = relationship("User",foreign_keys=[project_manager_id])
 
     __table_args__ = (

@@ -26,6 +26,9 @@ class UserBase(BaseModel):
     last_name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
 
+    class Config:
+        from_attributes = True
+
 class UserCreate(UserBase):
     """Schema for creating a user."""
     password: str = Field(..., min_length=8, max_length=100)

@@ -39,8 +39,9 @@ from app.constant.organizations_constant import (
     ERROR_FAILED_TO_UPDATE_ORGANIZATION,
     ERROR_FAILED_TO_APPROVE_ORGANIZATION,
     ERROR_FAILED_TO_DELETE_ORGANIZATION,
-    ROLE_SYSTEM_ADMIN,
 )
+
+from app.constant.role_constant import ROLE_SYSTEM_ADMIN
 
 class OrganizationService:
     """Provides organization business logic."""

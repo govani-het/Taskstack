@@ -36,9 +36,10 @@ from app.constant.user_constant import (
     ERROR_INVALID_ORGANIZATION_NAME,
     ERROR_USER_NOT_FOUND,
     ERROR_FAILED_TO_DELETE_USER,
-    ROLE_SYSTEM_ADMIN,
-    ROLE_ADMIN,
+    ERROR_USER_CAN_UPDATE_OWN_PROFILE
 )
+
+from app.constant.role_constant import ROLE_SYSTEM_ADMIN, ROLE_ADMIN
 
 class UserService:
     """Provides user business logic."""
@@ -117,6 +118,7 @@ class UserService:
 
         try:
             user = await create_user(self.db, user_dict)
+            user = await get_user_by_id(self.db, user.id)
             return APIResponse.success_response(SUCCESS_USER_CREATED, UserResponse.model_validate(user))
         except HTTPException:
             raise
@@ -163,7 +165,9 @@ class UserService:
         """
         update_dict = update_data.model_dump(exclude_unset=True)
 
-        # Validate and convert role_name to role_id if provided
+        if user_id != updated_by:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_USER_CAN_UPDATE_OWN_PROFILE)
+
         if "role_name" in update_dict:
             role = await self.validate_role_exists(update_dict["role_name"])
             if not role:
@@ -171,7 +175,7 @@ class UserService:
             update_dict["role_id"] = role.id
             del update_dict["role_name"]
 
-        # Validate and convert organization_name to organization_id if provided
+
         if "organization_name" in update_dict:
             if update_dict["organization_name"]:
                 organization = await self.validate_organization_exists(update_dict["organization_name"])
@@ -182,7 +186,7 @@ class UserService:
                 update_dict["organization_id"] = None
             del update_dict["organization_name"]
 
-        # Check email uniqueness if changing email
+
         if "email" in update_dict:
             existing_user = await get_user_by_email(self.db, update_dict["email"])
             if existing_user and existing_user.id != user_id:
@@ -196,8 +200,11 @@ class UserService:
 
         user = await update_user(self.db, user_id, update_dict)
         if user:
+            user = await get_user_by_id(self.db, user_id)
             return APIResponse.success_response(SUCCESS_USER_UPDATED, UserResponse.model_validate(user))
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_USER_NOT_FOUND)
+
+
 
     async def delete_user_service(self, user_id: UUID, deleted_by: Optional[UUID] = None) -> APIResponse[str]:
         """Soft-delete a user.

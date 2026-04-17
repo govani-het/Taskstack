@@ -4,19 +4,17 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
+from app.schemas.organization_schemas import OrganizationInfo
 
-
-class OrganizationInfo(BaseModel):
-    """Compact schema for organization information."""
-    name: str
 
 
 class ProjectBase(BaseModel):
     """Base schema for project data."""
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
-    organization_id: UUID
 
+    class Config:
+        from_attributes = True
 
 class ProjectCreate(ProjectBase):
     """Schema for creating a project."""

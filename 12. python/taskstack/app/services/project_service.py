@@ -17,6 +17,7 @@ from app.schemas.response_schemas import APIResponse
 from app.constant.project_constant import (
     SUCCESS_PROJECT_FETCHED,
     SUCCESS_PROJECTS_FETCHED,
+    SUCCESS_PROJECT_CREATED,
     SUCCESS_ALL_PROJECTS_FETCHED,
     ERROR_PROJECT_NOT_FOUND,
     ERROR_ACCESS_DENIED,
@@ -112,9 +113,11 @@ class ProjectService:
         project_data_obj["organization_id"] = current_user.get("organization_id")
         project_data_obj['created_by'] = current_user.get("id")
 
+
         try:
             response = await create_project(self.db, project_data_obj)
-            return APIResponse.success_response(SUCCESS_PROJECT_FETCHED, ProjectResponse.model_validate(response))
+            if response:
+                return APIResponse.success_response(SUCCESS_PROJECT_CREATED, ProjectResponse.model_validate(response))
         except HTTPException:
             # Propagate HTTP exceptions raised intentionally elsewhere
             raise

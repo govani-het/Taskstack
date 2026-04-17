@@ -4,33 +4,24 @@ from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
+from app.schemas.user_schemas import RoleInfo, UserBase
 
-
-class RoleInfo(BaseModel):
-    """Compact schema for role information."""
-    name: str
-
-
-class UserInfo(BaseModel):
-    """Compact schema for user information."""
-    first_name: str
-    last_name: str
-    email: str
 
 
 class ProjectMemberBase(BaseModel):
     """Base schema for project member data."""
-    project_id: UUID
     user_id: UUID
     role_id: UUID
     project_manager_id: Optional[UUID] = None
 
+    class Config:
+        from_attributes = True
 
 class ProjectMemberResponse(ProjectMemberBase):
     """Schema for project member responses."""
     id: UUID
     role: Optional[RoleInfo] = None
-    user: Optional[UserInfo] = None
+    user: Optional[UserBase] = None
     joined_at: Optional[datetime] = None
     left_at: Optional[datetime] = None
     is_active: bool

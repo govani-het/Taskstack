@@ -15,9 +15,7 @@ MODEL_CLASS = "User"
 ROUTER_PREFIX = "/users"
 ROUTER_TAG = "users"
 
-# Roles
-ROLE_SYSTEM_ADMIN = "system admin"
-ROLE_ADMIN = "admin"
+
 
 # Success messages
 SUCCESS_USER_CREATED = "User created successfully"
@@ -33,3 +31,4 @@ ERROR_INVALID_ROLE_NAME = "Invalid role name"
 ERROR_INVALID_ORGANIZATION_NAME = "Invalid organization name"
 ERROR_USER_NOT_FOUND = "User not found"
 ERROR_FAILED_TO_DELETE_USER = "Failed to delete user"
+ERROR_USER_CAN_UPDATE_OWN_PROFILE = "User can only update own profile"

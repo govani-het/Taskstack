@@ -17,6 +17,10 @@ ROUTER_TAG = "roles"
 
 # Roles
 ROLE_SYSTEM_ADMIN = "system admin"
+ROLE_ADMIN = "admin"
+ROLE_PROJECT_MANAGER = "project manager"
+ROLE_DEVELOPER = "developer"
+ROLE_TESTER = "tester"
 
 # Success messages
 SUCCESS_ROLE_CREATED = "Role created successfully"

@@ -15,9 +15,6 @@ MODEL_CLASS = "Organization"
 ROUTER_PREFIX = "/organizations"
 ROUTER_TAG = "organizations"
 
-# Roles
-ROLE_SYSTEM_ADMIN = "system admin"
-
 # Success messages
 SUCCESS_ORGANIZATION_CREATED = "Organization created successfully"
 SUCCESS_ORGANIZATION_FETCHED = "Organization Fetch Successfully."

@@ -5,13 +5,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
 from uuid import UUID
 
+from starlette.requests import Request
+
 from app.config.database import get_db
-from app.schemas.project_schemas import ProjectResponse
+from app.schemas.project_schemas import ProjectResponse, ProjectCreate
 from app.services.project_service import ProjectService
 from app.schemas.response_schemas import APIResponse
 from app.authentication.role_base_auth_token import get_current_user
 from app.utils.access_control import require_roles
-from app.constant.project_constant import ROLE_SYSTEM_ADMIN
+
+from app.constant.role_constant import ROLE_SYSTEM_ADMIN,ROLE_ADMIN,ROLE_PROJECT_MANAGER
 
 router = APIRouter(
     prefix="/projects",
@@ -56,6 +59,7 @@ async def get_project(
     Raises:
         HTTPException: If the project is missing or the user lacks access.
     """
+    project_obj = ProjectService(db)
     return await project_obj.get_project_service(project_id, current_user)
 
 
@@ -80,3 +84,21 @@ async def get_projects(
     """
     project_obj = ProjectService(db)
     return await project_obj.get_projects_service(current_user, skip, limit)
+
+@router.post("/", response_model=APIResponse[ProjectResponse])
+@require_roles([ROLE_ADMIN, ROLE_PROJECT_MANAGER])
+async def create_project(
+        project_data: ProjectCreate,
+        db: Annotated[AsyncSession, Depends(get_db)],
+        current_user: Annotated[dict, Depends(get_current_user)],
+):
+    """Create a new project.
+    Args:
+        db: Database session.
+    """
+    project_obj = ProjectService(db)
+    print("Creating project with data:", project_data)
+    return await project_obj.create_project_service(project_data, current_user)
+
+
+

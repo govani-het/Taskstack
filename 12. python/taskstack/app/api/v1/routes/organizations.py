@@ -11,8 +11,8 @@ from app.services.organization_service import OrganizationService
 from app.authentication.role_base_auth_token import get_current_user
 from app.utils.access_control import require_roles
 from app.schemas.response_schemas import APIResponse
-from app.constant.organizations_constant import ROLE_SYSTEM_ADMIN,ERROR_ORGANIZATION_NOT_FOUND
-
+from app.constant.organizations_constant import ERROR_ORGANIZATION_NOT_FOUND
+from app.constant.role_constant import ROLE_SYSTEM_ADMIN
 
 router = APIRouter(
     prefix="/organizations",
@@ -53,6 +53,7 @@ async def get_organization(
 
 
 @router.get("/", response_model=APIResponse[List[OrganizationResponse]])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def get_organizations(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
