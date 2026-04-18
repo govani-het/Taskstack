@@ -5,6 +5,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from uuid import UUID
+from datetime import datetime, timezone
 
 from app.models.project_member import ProjectMember
 from app.models.users import User
@@ -114,3 +115,71 @@ async def get_project_member_by_user_and_project(db: AsyncSession, user_id: UUID
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
+
+async def remove_project_member(db: AsyncSession, existing_member: ProjectMember, deleted_by_id: UUID) -> ProjectMember:
+    """Remove (soft delete) a project member.
+    
+    Args:
+        db: Database session.
+        existing_member: The project member to remove.
+        deleted_by_id: ID of the user performing the deletion.
+    
+    Returns:
+        ProjectMember: The removed project member.
+    """
+    existing_member.is_active = False
+    existing_member.deleted_by = deleted_by_id
+    existing_member.deleted_at = datetime.now(timezone.utc)
+    db.add(existing_member)
+    await db.commit()
+    await db.refresh(existing_member)
+    
+    # Reload with relationships
+    stmt = (
+        select(ProjectMember)
+        .options(
+            selectinload(ProjectMember.user).selectinload(User.role),
+            selectinload(ProjectMember.role),
+            selectinload(ProjectMember.project),
+            selectinload(ProjectMember.project_manager)
+        )
+        .where(ProjectMember.id == existing_member.id)
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one()
+
+
+async def update_project_member(db: AsyncSession, existing_member: ProjectMember, update_data: dict, updated_by_id: UUID) -> ProjectMember:
+    """Update a project member with audit tracking.
+    
+    Args:
+        db: Database session.
+        existing_member: The project member to update.
+        update_data: Dictionary containing fields to update.
+        updated_by_id: ID of the user performing the update.
+    
+    Returns:
+        ProjectMember: The updated project member.
+    """
+    for key, value in update_data.items():
+        if hasattr(existing_member, key):
+            setattr(existing_member, key, value)
+    
+    existing_member.updated_by = updated_by_id
+    db.add(existing_member)
+    await db.commit()
+    await db.refresh(existing_member)
+    
+    # Reload with relationships
+    stmt = (
+        select(ProjectMember)
+        .options(
+            selectinload(ProjectMember.user).selectinload(User.role),
+            selectinload(ProjectMember.role),
+            selectinload(ProjectMember.project),
+            selectinload(ProjectMember.project_manager)
+        )
+        .where(ProjectMember.id == existing_member.id)
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one()

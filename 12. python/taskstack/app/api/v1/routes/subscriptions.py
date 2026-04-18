@@ -74,7 +74,7 @@ async def get_subscriptions(
     return await subscription_obj.get_subscriptions_service(skip, limit)
 
 
-@router.put("/{subscription_id}", response_model=APIResponse[SubscriptionResponse])
+@router.patch("/{subscription_id}", response_model=APIResponse[SubscriptionResponse])
 @require_roles(["system admin"])
 async def update_subscription(
     subscription_id: UUID,

@@ -28,3 +28,17 @@ class ProjectMemberResponse(ProjectMemberBase):
 
     class Config:
         from_attributes = True
+
+class RemoveProjectMember(BaseModel):
+    """Base schema for project member data."""
+    user_id: UUID
+
+    class Config:
+        from_attributes = True
+
+class UpdateProjectMemberRole(BaseModel):
+    """Schema for updating project member role."""
+    role_id: UUID
+
+    class Config:
+        from_attributes = True

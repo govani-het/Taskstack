@@ -17,6 +17,5 @@ class Subscription(TimestampOptionalMixin, UserAuditMixin, Base):
     plan_name = Column(String(100), nullable=False, unique=True)
     validity = Column(String(50), nullable=False)
     price = Column(Float, nullable=False)
+    allowed_projects = Column(Float, default=5, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-
-    organizations = relationship("Organization", back_populates="subscription_plan")

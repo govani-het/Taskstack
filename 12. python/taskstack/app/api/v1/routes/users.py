@@ -74,7 +74,7 @@ async def get_users(
     return await user_obj.get_users_service(skip, limit)
 
 
-@router.put("/{user_id}", response_model=APIResponse[UserResponse])
+@router.patch("/{user_id}", response_model=APIResponse[UserResponse])
 @require_roles([ROLE_ADMIN,ROLE_DEVELOPER,ROLE_PROJECT_MANAGER,ROLE_TESTER])
 async def update_user(
     user_id: UUID,

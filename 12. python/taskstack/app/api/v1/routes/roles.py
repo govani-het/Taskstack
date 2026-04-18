@@ -73,7 +73,7 @@ async def get_roles(
     return await role_obj.get_roles_service(skip, limit)
 
 
-@router.put("/{role_id}", response_model=APIResponse[RoleResponse])
+@router.patch("/{role_id}", response_model=APIResponse[RoleResponse])
 @require_roles(["system admin"])
 async def update_role(
     role_id: UUID,

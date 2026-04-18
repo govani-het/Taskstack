@@ -11,16 +11,22 @@ from app.repositories.project_member_repository import (
     get_all_project_members,
     create_project_member,
     get_project_member_by_user_and_project,
+    remove_project_member,
+    update_project_member,
 )
 from app.repositories.project_repository import get_project_by_id
 from app.repositories.user_repository import get_user_by_id
 from app.repositories.role_repository import get_role_by_id
-from app.schemas.project_member_schemas import ProjectMemberResponse
+from app.schemas.project_member_schemas import ProjectMemberResponse, UpdateProjectMemberRole
 
 
 from app.schemas.response_schemas import APIResponse
 from app.constant.project_member_constant import (
     ROLE_SYSTEM_ADMIN,
+)
+from app.constant.role_constant import (
+    ROLE_ADMIN,
+    ROLE_PROJECT_MANAGER,
 )
 
 class ProjectMemberService:
@@ -88,21 +94,18 @@ class ProjectMemberService:
         Raises:
             HTTPException: If validation fails.
         """
-        # Verify project exists and belongs to the current user's organization
+        
         project = await get_project_by_id(self.db, project_id)
         if not project:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Project not found"
             )
-        print("???????????????????????????????????????")
-        print(type(project.organization_id))
-        print(type(current_user.get("organization_id")))
 
         if project.organization_id != UUID(current_user.get("organization_id")):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot add a member to a project that belongs to another organization.")
 
-        # Verify user exists
+        
         user = await get_user_by_id(self.db, project_member_data.user_id)
         if not user:
             raise HTTPException(
@@ -110,14 +113,14 @@ class ProjectMemberService:
                 detail="User not found"
             )
 
-        # Verify user belongs to the same organization as the project
+        
         if user.organization_id != project.organization_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="User must belong to the same organization as the project"
             )
 
-        # Verify role exists
+        
         role = await get_role_by_id(self.db, project_member_data.role_id)
         if not role:
             raise HTTPException(
@@ -125,7 +128,7 @@ class ProjectMemberService:
                 detail="Role not found"
             )
 
-        # Check if user is already a member of this project
+        
         existing_member = await get_project_member_by_user_and_project(
             self.db,
             project_member_data.user_id,
@@ -137,23 +140,27 @@ class ProjectMemberService:
                     status_code=status.HTTP_409_CONFLICT,
                     detail="User is already a member of this project"
                 )
-            # If they were a member but left, reactivate them
-            existing_member.is_active = True
-            self.db.add(existing_member)
-            await self.db.commit()
-            await self.db.refresh(existing_member)
+            
+            update_data = {"is_active": True}
+            reactivated_member = await update_project_member(
+                self.db, 
+                existing_member, 
+                update_data,
+                UUID(current_user.get("id"))
+            )
             return APIResponse.success_response(
                 "Project member added successfully",
-                ProjectMemberResponse.model_validate(existing_member)
+                ProjectMemberResponse.model_validate(reactivated_member)
             )
 
-        # Create new project member
+        
         member_data = {
             "project_id": project_id,
             "user_id": project_member_data.user_id,
             "role_id": project_member_data.role_id,
             "project_manager_id": project_member_data.project_manager_id,
             "is_active": True,
+            "created_by": UUID(current_user.get("id")),
         }
 
         new_member = await create_project_member(self.db, member_data)
@@ -164,3 +171,133 @@ class ProjectMemberService:
         )
 
 
+    async def remove_project_member_service(self, project_member, project_id, current_user):
+        """Remove a member from a project.
+        
+        Args:
+            project_member: Project member data from request.
+            project_id: Project identifier.
+            current_user: Authenticated user payload.
+        
+        Returns:
+            APIResponse[ProjectMemberResponse]: Standardized project-member removal response.
+        
+        Raises:
+            HTTPException: If validation fails.
+        """
+
+        
+        project = await get_project_by_id(self.db, project_id)
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+
+        if project.organization_id != UUID(current_user.get("organization_id")) or current_user.get("role") not in [
+            "admin", "project_manager"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to remove members from this project."
+            )
+
+        user = await get_user_by_id(self.db, project_member.user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        
+        existing_member = await get_project_member_by_user_and_project(
+            self.db,
+            project_member.user_id,
+            project_id
+        )
+        if not existing_member or not existing_member.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User is not an active member of this project"
+            )
+
+       
+        removed_member = await remove_project_member(
+            self.db,
+            existing_member,
+            UUID(current_user.get("id"))
+        )
+
+        return APIResponse.success_response(
+            "Project member removed successfully",
+            ProjectMemberResponse.model_validate(removed_member)
+        )
+
+    async def update_project_member_role_service(self, project_member_data: UpdateProjectMemberRole, project_id: UUID, member_id: UUID, current_user: dict) -> APIResponse[ProjectMemberResponse]:
+        """Update a project member's role.
+
+        Args:
+            project_member_data: UpdateProjectMemberRole payload containing new role_id.
+            project_id: Project identifier.
+            member_id: Project member identifier.
+            current_user: Authenticated user payload.
+
+        Returns:
+            APIResponse[ProjectMemberResponse]: Standardized project-member update response.
+
+        Raises:
+            HTTPException: If validation fails or user lacks permission.
+        """
+        # Verify project exists and belongs to the current user's organization
+        project = await get_project_by_id(self.db, project_id)
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+
+        if project.organization_id != UUID(current_user.get("organization_id")):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You cannot update members of a project that belongs to another organization."
+            )
+
+        # Check if current user has permission to update roles (only admin and project manager)
+        if current_user.get("role") not in [ROLE_ADMIN, ROLE_PROJECT_MANAGER]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only admins and project managers can update project member roles."
+            )
+
+        # Verify the new role exists
+        new_role = await get_role_by_id(self.db, project_member_data.role_id)
+        if not new_role:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="New role not found"
+            )
+
+        # Get the project member to update
+        existing_member = await get_project_member_by_user_and_project(
+            self.db,
+            member_id,
+            project_id
+        )
+        if not existing_member or not existing_member.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project member not found or inactive"
+            )
+
+        # Update the member's role
+        update_data = {"role_id": project_member_data.role_id}
+        updated_member = await update_project_member(
+            self.db,
+            existing_member,
+            update_data,
+            UUID(current_user.get("id"))
+        )
+
+        return APIResponse.success_response(
+            "Project member role updated successfully",
+            ProjectMemberResponse.model_validate(updated_member)
+        )

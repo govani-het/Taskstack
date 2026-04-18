@@ -1,11 +1,12 @@
 """Project member ORM model."""
 
 from app.config.database import Base
+from app.models.model_columns import TimestampRequiredMixin, UserAuditMixin
 from sqlalchemy import UUID, Boolean, Column, DateTime, ForeignKey, UniqueConstraint, func
 from sqlalchemy.orm import relationship
 import uuid
 
-class ProjectMember(Base):
+class ProjectMember(TimestampRequiredMixin, UserAuditMixin, Base):
     """Represents a project member record."""
     __tablename__ = "project_members"
 
