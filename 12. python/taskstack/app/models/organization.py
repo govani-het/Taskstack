@@ -18,18 +18,11 @@ class Organization(TimestampOptionalMixin, UserAuditMixin, Base):
     email = Column(String(100), nullable=False, unique=True)
     is_approved = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    subscription_plan_id = Column(UUID(as_uuid=True), ForeignKey("subscriptions.id"), nullable=True)
-    subscribe_at = Column(DateTime(timezone=True), nullable=True)
 
-    cancel_subscription_at = Column(DateTime(timezone=True), nullable=True)
-    cancel_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-
-    users = relationship("User",back_populates="organization",foreign_keys="User.organization_id",
-    )
+    users = relationship("User",back_populates="organization",foreign_keys="User.organization_id")
     projects = relationship("Project", back_populates="organization")
-    subscription_plan = relationship("Subscription", back_populates="organizations")
+    subscriptions = relationship("OrganizationSubscription", back_populates="organization")
 
     created_by_user = relationship("User", foreign_keys="Organization.created_by")
     updated_by_user = relationship("User", foreign_keys="Organization.updated_by")
     deleted_by_user = relationship("User", foreign_keys="Organization.deleted_by")
-    cancel_by_user = relationship("User", foreign_keys=[cancel_by])

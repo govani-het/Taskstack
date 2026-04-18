@@ -20,6 +20,7 @@ ROLE_SYSTEM_ADMIN = "system admin"
 
 # Success messages
 SUCCESS_PROJECT_FETCHED = "Project fetched successfully"
+SUCCESS_PROJECT_CREATED = "Project created successfully"
 SUCCESS_PROJECTS_FETCHED = "Projects fetched successfully"
 SUCCESS_ALL_PROJECTS_FETCHED = "All projects fetched successfully"
 

@@ -15,9 +15,6 @@ MODEL_CLASS = "Organization"
 ROUTER_PREFIX = "/organizations"
 ROUTER_TAG = "organizations"
 
-# Roles
-ROLE_SYSTEM_ADMIN = "system admin"
-
 # Success messages
 SUCCESS_ORGANIZATION_CREATED = "Organization created successfully"
 SUCCESS_ORGANIZATION_FETCHED = "Organization Fetch Successfully."
@@ -35,7 +32,6 @@ ERROR_FAILED_TO_FETCH_ORGANIZATIONS = "Failed to fetch organizations"
 ERROR_ORGANIZATION_NOT_FOUND = "Organization not found"
 ERROR_NO_ORGANIZATION_ASSOCIATED = "No organization associated"
 ERROR_FAILED_TO_FETCH_UNAPPROVED_ORGANIZATIONS = "Failed to fetch unapproved organizations"
-ERROR_INVALID_SUBSCRIPTION_PLAN_ID = "Invalid subscription plan ID"
 ERROR_ORGANIZATION_EMAIL_ALREADY_REGISTERED = "Organization email already registered"
 ERROR_FAILED_TO_UPDATE_ORGANIZATION = "Failed to Update Organization"
 ERROR_FAILED_TO_APPROVE_ORGANIZATION = "Failed to Approve Organization"

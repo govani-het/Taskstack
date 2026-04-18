@@ -1,10 +1,12 @@
 """Organization repository functions."""
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
+
+from sqlalchemy.sql.functions import current_user
 
 from app.models.organization import Organization
 from app.utils.hash_password import hash_password
@@ -26,7 +28,7 @@ async def get_organization_by_id(db: AsyncSession, organization_id: UUID) -> Opt
     """
     stmt = (
         select(Organization)
-        .options(selectinload(Organization.subscription_plan), selectinload(Organization.users))
+        .options(selectinload(Organization.subscriptions), selectinload(Organization.users))
         .where(Organization.id == organization_id)
     )
     result = await db.execute(stmt)
@@ -76,7 +78,7 @@ async def get_organizations(db: AsyncSession, skip: int = 0, limit: int = 100) -
     """
     stmt = (
         select(Organization)
-        .options(selectinload(Organization.subscription_plan), selectinload(Organization.users))
+        .options(selectinload(Organization.subscriptions), selectinload(Organization.users))
         .offset(skip)
         .limit(limit)
     )

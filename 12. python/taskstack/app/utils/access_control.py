@@ -69,7 +69,7 @@ def require_roles(allowed_roles: list[str]):
             if current_user.get("role") not in allowed_roles:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Forbidden",
+                    detail="You Don't have permission to access this resource",
                 )
 
             kwargs["current_user"] = current_user

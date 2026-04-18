@@ -2,6 +2,7 @@
 
 from .comment import Comment
 from .organization import Organization
+from .organization_subscription import OrganizationSubscription
 from .project_member import ProjectMember
 from .reply import Reply
 from .roles import Role
@@ -15,6 +16,7 @@ __all__ = [
     "Role",
     "User",
     "Organization",
+    "OrganizationSubscription",
     "Subscription",
     "Project",
     "ProjectMember",

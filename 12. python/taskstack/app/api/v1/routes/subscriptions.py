@@ -12,6 +12,7 @@ from app.schemas.response_schemas import APIResponse
 from app.authentication.role_base_auth_token import get_current_user
 from app.utils.access_control import require_roles
 
+from app.constant.role_constant import ROLE_SYSTEM_ADMIN
 router = APIRouter(
     prefix="/subscriptions",
     tags=["subscriptions"],
@@ -73,7 +74,7 @@ async def get_subscriptions(
     return await subscription_obj.get_subscriptions_service(skip, limit)
 
 
-@router.put("/{subscription_id}", response_model=APIResponse[SubscriptionResponse])
+@router.patch("/{subscription_id}", response_model=APIResponse[SubscriptionResponse])
 @require_roles(["system admin"])
 async def update_subscription(
     subscription_id: UUID,

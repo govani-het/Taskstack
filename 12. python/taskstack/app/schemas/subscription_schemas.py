@@ -11,6 +11,7 @@ class SubscriptionBase(BaseModel):
     plan_name: str = Field(..., min_length=1, max_length=100)
     validity: str = Field(..., min_length=1, max_length=50)
     price: float = Field(..., gt=0)
+    allowed_projects: float = Field(default=5, ge=1)
 
 
 class SubscriptionCreate(SubscriptionBase):
@@ -23,6 +24,7 @@ class SubscriptionUpdate(BaseModel):
     plan_name: Optional[str] = Field(None, min_length=1, max_length=100)
     validity: Optional[str] = Field(None, min_length=1, max_length=50)
     price: Optional[float] = Field(None, gt=0)
+    allowed_projects: Optional[float] = Field(None, ge=1)
 
 
 class SubscriptionResponse(SubscriptionBase):

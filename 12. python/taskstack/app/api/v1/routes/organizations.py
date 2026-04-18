@@ -11,8 +11,8 @@ from app.services.organization_service import OrganizationService
 from app.authentication.role_base_auth_token import get_current_user
 from app.utils.access_control import require_roles
 from app.schemas.response_schemas import APIResponse
-from app.constant.organizations_constant import ROLE_SYSTEM_ADMIN,ERROR_ORGANIZATION_NOT_FOUND
-
+from app.constant.organizations_constant import ERROR_ORGANIZATION_NOT_FOUND
+from app.constant.role_constant import ROLE_SYSTEM_ADMIN,ROLE_ADMIN
 
 router = APIRouter(
     prefix="/organizations",
@@ -53,6 +53,7 @@ async def get_organization(
 
 
 @router.get("/", response_model=APIResponse[List[OrganizationResponse]])
+@require_roles([ROLE_SYSTEM_ADMIN])
 async def get_organizations(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -92,7 +93,7 @@ async def get_unapproved_organizations(
     return await organization_obj.get_unapproved_organizations_service(skip, limit)
 
 
-@router.put("/{organization_id}", response_model=APIResponse[OrganizationResponse])
+@router.patch("/{organization_id}", response_model=APIResponse[OrganizationResponse])
 @require_roles([ROLE_SYSTEM_ADMIN])
 async def update_organization(
     organization_id: UUID,
@@ -112,7 +113,7 @@ async def update_organization(
     return await organization_obj.update_organization_service(organization_id, update_data, UUID(current_user["id"]))
 
 
-@router.put("/{organization_id}/approve", response_model=APIResponse[OrganizationResponse])
+@router.patch("/{organization_id}/approve", response_model=APIResponse[OrganizationResponse])
 @require_roles([ROLE_SYSTEM_ADMIN])
 async def approve_organization(
     organization_id: UUID,

@@ -6,6 +6,7 @@ from .routes.users import router as users_router
 from .routes.roles import router as roles_router
 from .routes.subscriptions import router as subscriptions_router
 from .routes.organizations import router as organizations_router
+from .routes.organization_subscriptions import router as organization_subscriptions_router
 from .routes.projects import router as projects_router
 from .routes.project_members import router as project_members_router
 
@@ -14,5 +15,6 @@ router.include_router(users_router)
 router.include_router(roles_router)
 router.include_router(subscriptions_router)
 router.include_router(organizations_router)
+router.include_router(organization_subscriptions_router)
 router.include_router(projects_router)
 router.include_router(project_members_router)
