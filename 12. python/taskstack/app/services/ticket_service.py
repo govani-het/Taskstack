@@ -39,12 +39,16 @@ from app.constant.ticket_constant import (
     ERROR_TICKET_STATUS_CHANGE_NOT_ALLOWED,
     ERROR_TICKET_UPDATE_NOT_ALLOWED,
     ERROR_TICKET_DELETE_NOT_ALLOWED,
+    ERROR_INVALID_STATUS_TRANSITION,
+    ERROR_TICKET_CANCEL_NOT_ALLOWED,
+    ERROR_DEVELOPER_CANNOT_CANCEL,
     SUCCESS_TICKET_CREATED,
     SUCCESS_TICKET_FETCHED,
     SUCCESS_TICKETS_FETCHED,
     SUCCESS_TICKET_UPDATED,
     SUCCESS_TICKET_DELETED,
     SUCCESS_TICKET_ASSIGNED,
+    SUCCESS_TICKET_CANCELED,
     PRIORITY_HIGH,
     PRIORITY_INTERMEDIATE,
     PRIORITY_LOW,
@@ -52,6 +56,7 @@ from app.constant.ticket_constant import (
     STATUS_PROCESS,
     STATUS_COMPLETED,
     STATUS_CANCELED,
+    STATUS_WORKFLOW,
 )
 
 
@@ -161,6 +166,22 @@ class TicketService:
 
         return assignee_member
 
+    def _validate_status_transition(self, current_status: str, target_status: str):
+        """Validate that a status transition is allowed.
+
+        Args:
+            current_status: Current ticket status.
+            target_status: Target ticket status.
+
+        Raises:
+            HTTPException: If the transition is not allowed.
+        """
+        if target_status not in STATUS_WORKFLOW.get(current_status, []):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ERROR_INVALID_STATUS_TRANSITION.format(current=current_status, target=target_status)
+            )
+
     async def get_tickets_by_project_service(self, project_id: UUID, current_user: dict, skip: int = 0, limit: int = 100) -> APIResponse[List[TicketResponse]]:
         """Get tickets for a project.
 
@@ -224,30 +245,29 @@ class TicketService:
         user_id = UUID(current_user.get("id"))
         organization_id = current_user.get("organization_id")
 
+        # Business logic: Validate access based on role (role validation done by @require_roles)
         if role == ROLE_ADMIN:
             await self._assert_same_organization(project, organization_id)
+            owner_member = await self._assert_project_member(project_id, user_id)
         else:
-            creator_member = await self._assert_project_member(project_id, user_id)
+            owner_member = await self._assert_project_member(project_id, user_id)
 
         payload = ticket_data.model_dump(exclude_none=True)
         payload.setdefault("status", STATUS_PENDING)
         payload.setdefault("priority", PRIORITY_INTERMEDIATE)
         payload["project_id"] = project_id
 
+        # Status validation - non-admin/pm can only set status to PENDING
         if role not in [ROLE_ADMIN, ROLE_PROJECT_MANAGER] and payload.get("status") != STATUS_PENDING:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_STATUS_CHANGE_NOT_ALLOWED)
 
+        # Assignment validation - non-admin/pm cannot assign on creation
         if payload.get("assignee_id") is not None and role not in [ROLE_ADMIN, ROLE_PROJECT_MANAGER]:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_ASSIGNMENT_NOT_ALLOWED)
 
         if payload.get("assignee_id") is not None:
             assignee_member = await self._assert_assignable_member(payload["assignee_id"], project_id)
             payload["assignee_id"] = assignee_member.id
-
-        if role == ROLE_ADMIN:
-            owner_member = await self._assert_project_member(project_id, user_id)
-        else:
-            owner_member = creator_member
 
         payload["created_by"] = owner_member.id
         ticket = await create_ticket(self.db, payload)
@@ -269,12 +289,11 @@ class TicketService:
         user_id = UUID(current_user.get("id"))
         organization_id = current_user.get("organization_id")
 
+        # Role-based permission checks (already validated by @require_roles, this is business logic)
         if role == ROLE_ADMIN:
             await self._assert_same_organization(ticket.project, organization_id)
         elif role == ROLE_PROJECT_MANAGER:
             await self._assert_project_manager(ticket.project_id, user_id)
-        else:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_UPDATE_NOT_ALLOWED)
 
         update_payload = ticket_data.model_dump(exclude_none=True)
         if not update_payload:
@@ -284,16 +303,19 @@ class TicketService:
             assignee_member = await self._assert_assignable_member(update_payload["assignee_id"], ticket.project_id)
             update_payload["assignee_id"] = assignee_member.id
 
-        if update_payload.get("status") is not None and role != ROLE_PROJECT_MANAGER and role != ROLE_ADMIN:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_STATUS_CHANGE_NOT_ALLOWED)
-
         if update_payload.get("status") is not None and update_payload["status"] not in ALLOWED_STATUS_VALUES:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid status value: {update_payload['status']}")
+
+        if update_payload.get("status") is not None and ticket.status:
+            self._validate_status_transition(ticket.status, update_payload["status"])
 
         if update_payload.get("priority") is not None and update_payload["priority"] not in ALLOWED_PRIORITY_VALUES:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid priority value: {update_payload['priority']}")
 
-        update_payload["updated_by"] = user_id
+        user_project_member = await get_project_member_by_user_and_project(self.db, user_id, ticket.project_id)
+        if user_project_member:
+            update_payload["updated_by"] = user_project_member.id
+        
         updated_ticket = await update_ticket(self.db, ticket, update_payload)
         return APIResponse.success_response(SUCCESS_TICKET_UPDATED, TicketResponse.model_validate(updated_ticket))
 
@@ -312,19 +334,15 @@ class TicketService:
         user_id = UUID(current_user.get("id"))
         organization_id = current_user.get("organization_id")
 
-        # Admin can delete any ticket in their organization
+        # Role-based permission checks (already gated by @require_roles, checking business logic)
         if role == ROLE_ADMIN:
             await self._assert_same_organization(ticket.project, organization_id)
-        # Project Manager can delete tickets from projects they manage
         elif role == ROLE_PROJECT_MANAGER:
             await self._assert_project_manager(ticket.project_id, user_id)
-        # Reporter can only delete their own tickets
         elif role == ROLE_REPORTER:
+            # Reporter can only delete their own tickets
             if not ticket.created_by_member or str(ticket.created_by_member.user_id) != str(user_id):
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_DELETE_NOT_ALLOWED)
-        else:
-            # DEVELOPER or others cannot delete
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_DELETE_NOT_ALLOWED)
 
         # Get user's project member record for audit trail
         user_project_member = await get_project_member_by_user_and_project(self.db, user_id, ticket.project_id)
@@ -336,6 +354,8 @@ class TicketService:
 
     async def assign_ticket_service(self, ticket_id: UUID, assignee_id: UUID, current_user: dict) -> APIResponse[TicketResponse]:
         """Assign a ticket to a project member.
+        
+        Only admin and project manager can assign (enforced by @require_roles).
 
         Args:
             ticket_id: Ticket identifier.
@@ -350,13 +370,11 @@ class TicketService:
         user_id = UUID(current_user.get("id"))
         organization_id = current_user.get("organization_id")
 
-        # Only admin and project manager can assign tickets
+        # Business logic: Check organization/project access (role validation done by @require_roles)
         if role == ROLE_ADMIN:
             await self._assert_same_organization(ticket.project, organization_id)
         elif role == ROLE_PROJECT_MANAGER:
             await self._assert_project_manager(ticket.project_id, user_id)
-        else:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_ASSIGN_NOT_ALLOWED)
 
         # Validate assignee
         assignee_member = await self._assert_assignable_member(assignee_id, ticket.project_id)
@@ -369,6 +387,60 @@ class TicketService:
 
         updated_ticket = await update_ticket(self.db, ticket, update_payload)
         return APIResponse.success_response(SUCCESS_TICKET_ASSIGNED, TicketResponse.model_validate(updated_ticket))
+
+    async def cancel_ticket_service(self, ticket_id: UUID, current_user: dict) -> APIResponse[TicketResponse]:
+        """Cancel a ticket with role-based permissions.
+        
+        - Reporter can only cancel their own tickets
+        - Project Manager can only cancel tickets in their projects
+        - Admin can only cancel tickets in their organization
+        
+        Args:
+            ticket_id: Ticket identifier.
+            current_user: Current authenticated user.
+        
+        Returns:
+            APIResponse[TicketResponse]: Canceled ticket response.
+        """
+        ticket = await self._assert_ticket_exists(ticket_id)
+        role = current_user.get("role")
+        user_id = UUID(current_user.get("id"))
+        organization_id = current_user.get("organization_id")
+
+        # Check role-based permissions
+        if role == ROLE_ADMIN:
+            # Admin can cancel tickets in their organization
+            await self._assert_same_organization(ticket.project, organization_id)
+        elif role == ROLE_PROJECT_MANAGER:
+            # Project Manager can cancel tickets in their projects
+            await self._assert_project_manager(ticket.project_id, user_id)
+        elif role == ROLE_REPORTER:
+            # Reporter can only cancel their own tickets
+            if not ticket.created_by_member or str(ticket.created_by_member.user_id) != str(user_id):
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_CANCEL_NOT_ALLOWED)
+        else:
+            # DEVELOPER cannot cancel tickets
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_DEVELOPER_CANNOT_CANCEL)
+
+        # Validate status is cancellable
+        if ticket.status not in STATUS_WORKFLOW or STATUS_CANCELED not in STATUS_WORKFLOW[ticket.status]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ERROR_INVALID_STATUS_TRANSITION.format(current=ticket.status, target=STATUS_CANCELED)
+            )
+
+        # Get user's project member record for audit trail
+        user_project_member = await get_project_member_by_user_and_project(self.db, user_id, ticket.project_id)
+        if not user_project_member:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_CANCEL_NOT_ALLOWED)
+
+        # Update ticket status to canceled
+        update_payload = {
+            "status": STATUS_CANCELED,
+            "updated_by": user_project_member.id
+        }
+        canceled_ticket = await update_ticket(self.db, ticket, update_payload)
+        return APIResponse.success_response(SUCCESS_TICKET_CANCELED, TicketResponse.model_validate(canceled_ticket))
 
     async def _assert_project_manager(self, project_id: UUID, user_id: UUID) -> ProjectMember:
         """Validate that a user is the project manager for a project.
