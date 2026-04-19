@@ -15,7 +15,12 @@ from app.repositories.project_repository import (
     update_project,
     delete_project,
 )
-from app.repositories.project_member_repository import get_project_member_by_user_and_project
+from app.repositories.project_member_repository import (
+    get_project_member_by_user_and_project,
+    get_project_manager_member,
+    create_project_member,
+)
+from app.repositories.role_repository import get_role_by_name
 from app.schemas.project_schemas import ProjectResponse, ProjectCreate, ProjectUpdate
 
 from app.schemas.response_schemas import APIResponse
@@ -154,7 +159,12 @@ class ProjectService:
         return APIResponse.success_response(SUCCESS_ALL_PROJECTS_FETCHED, [ProjectResponse.model_validate(project) for project in projects])
 
     async def update_project_service(self, project_id: UUID, project_data: ProjectUpdate, current_user: dict) -> APIResponse[ProjectResponse]:
-        """Update a project with role-based access control."""
+        """Update a project with role-based access control.
+        
+        Router decorator ensures user is one of: ROLE_ADMIN, ROLE_PROJECT_MANAGER
+        - ADMIN: Can update any project in their organization
+        - PROJECT_MANAGER: Can only update projects where they are assigned as project manager
+        """
         project = await get_project_by_id(self.db, project_id)
         if not project:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_PROJECT_NOT_FOUND)
@@ -166,46 +176,46 @@ class ProjectService:
         # Check subscription access for editing
         await self._check_subscription_edit_access(UUID(organization_id))
 
-        if role == ROLE_SYSTEM_ADMIN:
-            pass
-        elif role == ROLE_ADMIN:
-            if str(project.organization_id) != organization_id:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_ACCESS_DENIED)
-        elif role == ROLE_PROJECT_MANAGER:
-            if str(project.organization_id) != organization_id:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_ACCESS_DENIED)
-
-            project_member = await get_project_member_by_user_and_project(self.db, user_id, project_id)
-            if not project_member or not project_member.is_active:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_ACCESS_DENIED)
-        else:
+        # Both Admin and Project Manager must belong to same organization
+        if str(project.organization_id) != organization_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_ACCESS_DENIED)
 
+        # Project Manager can only update projects where they are the project manager
+        if role == ROLE_PROJECT_MANAGER:
+            project_manager_member = await get_project_manager_member(self.db, user_id, project_id)
+            if not project_manager_member:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_ACCESS_DENIED)
+
         update_payload = project_data.model_dump(exclude_none=True)
-        if role != ROLE_SYSTEM_ADMIN and "organization_id" in update_payload:
+        # Prevent non-admin users from changing organization
+        if role != ROLE_ADMIN and "organization_id" in update_payload:
             update_payload.pop("organization_id")
 
         updated_project = await update_project(self.db, project, update_payload, user_id)
         return APIResponse.success_response(SUCCESS_PROJECT_FETCHED, ProjectResponse.model_validate(updated_project))
 
     async def delete_project_service(self, project_id: UUID, current_user: dict) -> APIResponse[ProjectResponse]:
-        """Delete a project with role-based access control."""
+        """Delete a project with role-based access control.
+        
+        Router decorator ensures user is ROLE_ADMIN only
+        - ADMIN: Can only delete projects in their organization
+        """
         project = await get_project_by_id(self.db, project_id)
         if not project:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_PROJECT_NOT_FOUND)
 
-        role = current_user.get("role")
         organization_id = current_user.get("organization_id")
         user_id = UUID(current_user.get("id"))
 
         # Check subscription access for editing
         await self._check_subscription_edit_access(UUID(organization_id))
 
-        if role == ROLE_ADMIN:
-            if str(project.organization_id) != organization_id:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_ACCESS_DENIED)
-        else:
+        # Admin must belong to same organization as the project
+        if str(project.organization_id) != organization_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_ACCESS_DENIED)
+
+        deleted_project = await delete_project(self.db, project, user_id)
+        return APIResponse.success_response(SUCCESS_PROJECT_FETCHED, ProjectResponse.model_validate(deleted_project))
 
         deleted_project = await delete_project(self.db, project, user_id)
         return APIResponse.success_response(SUCCESS_PROJECT_FETCHED, ProjectResponse.model_validate(deleted_project))
@@ -244,27 +254,21 @@ class ProjectService:
         try:
             response = await create_project(self.db, project_data_obj)
             if response:
+                # If the creator is a project manager, add them as the project manager for this project
+                if current_user.get("role") == ROLE_PROJECT_MANAGER:
+                    # Get the project manager role
+                    pm_role = await get_role_by_name(self.db, ROLE_PROJECT_MANAGER)
+                    if pm_role:
+                        member_data = {
+                            "project_id": response.id,
+                            "user_id": UUID(current_user.get("id")),
+                            "role_id": pm_role.id,
+                            "project_manager_id": UUID(current_user.get("id")),
+                            "created_by": UUID(current_user.get("id"))
+                        }
+                        await create_project_member(self.db, member_data)
                 return APIResponse.success_response(SUCCESS_PROJECT_CREATED, ProjectResponse.model_validate(response))
         except HTTPException:
             raise
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
-    async def _check_subscription_edit_access(self, organization_id: UUID):
-        """Check if organization has active subscriptions for editing operations.
-
-        Args:
-            organization_id: Organization identifier.
-
-        Raises:
-            HTTPException: If no active subscriptions found.
-        """
-        from app.services.organization_subscription_service import OrganizationSubscriptionService
-
-        subscription_service = OrganizationSubscriptionService(self.db)
-        has_access = await subscription_service.check_subscription_access(organization_id)
-        if not has_access:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Active subscription required to modify projects"
-            )
