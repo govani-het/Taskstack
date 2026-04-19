@@ -45,7 +45,7 @@ async def get_all_project_members(
 
 
 @router.get("/project/{project_id}", response_model=APIResponse[List[ProjectMemberResponse]])
-@require_roles([ROLE_SYSTEM_ADMIN])
+@require_roles([ROLE_SYSTEM_ADMIN, ROLE_ADMIN, ROLE_PROJECT_MANAGER])
 async def get_project_members(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -71,7 +71,7 @@ async def get_project_members(
 
 
 @router.post("/project/{project_id}", response_model=APIResponse[ProjectMemberResponse])
-@require_roles([ROLE_ADMIN])
+@require_roles([ROLE_ADMIN, ROLE_PROJECT_MANAGER])
 async def create_project_member(
         project_memeber: ProjectMemberBase,
         db: Annotated[AsyncSession, Depends(get_db)],

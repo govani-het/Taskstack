@@ -15,8 +15,6 @@ MODEL_CLASS = "ProjectMember"
 ROUTER_PREFIX = "/project-members"
 ROUTER_TAG = "project-members"
 
-# Roles
-ROLE_SYSTEM_ADMIN = "system admin"
 
 # Success messages
 SUCCESS_PROJECT_MEMBERS_FETCHED = "Project members fetched successfully"

@@ -89,7 +89,7 @@ async def get_project(
 
 
 @router.patch("/{project_id}", response_model=APIResponse[ProjectResponse])
-@require_roles([ROLE_SYSTEM_ADMIN, ROLE_ADMIN, ROLE_PROJECT_MANAGER])
+@require_roles([ROLE_ADMIN, ROLE_PROJECT_MANAGER])
 async def update_project(
         project_id: UUID,
         project_data: ProjectUpdate,
@@ -102,7 +102,7 @@ async def update_project(
 
 
 @router.delete("/{project_id}", response_model=APIResponse[ProjectResponse])
-@require_roles([ROLE_SYSTEM_ADMIN, ROLE_ADMIN])
+@require_roles([ROLE_ADMIN])
 async def delete_project(
         project_id: UUID,
         db: Annotated[AsyncSession, Depends(get_db)],
