@@ -20,6 +20,14 @@ STATUS_PROCESS = "process"
 STATUS_COMPLETED = "completed"
 STATUS_CANCELED = "canceled"
 
+# Status workflow transitions (valid next statuses from current status)
+STATUS_WORKFLOW = {
+    STATUS_PENDING: [STATUS_PROCESS, STATUS_CANCELED],
+    STATUS_PROCESS: [STATUS_COMPLETED, STATUS_CANCELED],
+    STATUS_COMPLETED: [],
+    STATUS_CANCELED: [],
+}
+
 # Ticket priorities
 PRIORITY_HIGH = "high"
 PRIORITY_INTERMEDIATE = "intermediate"
@@ -32,6 +40,7 @@ SUCCESS_TICKETS_FETCHED = "Tickets fetched successfully"
 SUCCESS_TICKET_UPDATED = "Ticket updated successfully"
 SUCCESS_TICKET_DELETED = "Ticket deleted successfully"
 SUCCESS_TICKET_ASSIGNED = "Ticket assigned successfully"
+SUCCESS_TICKET_CANCELED = "Ticket canceled successfully"
 SUCCESS_COMMENT_CREATED = "Comment added successfully"
 SUCCESS_COMMENTS_FETCHED = "Comments fetched successfully"
 
@@ -47,3 +56,7 @@ ERROR_TICKET_STATUS_CHANGE_NOT_ALLOWED = "You cannot change ticket status"
 ERROR_TICKET_UPDATE_NOT_ALLOWED = "You are not allowed to update this ticket"
 ERROR_TICKET_DELETE_NOT_ALLOWED = "You are not allowed to delete this ticket"
 ERROR_COMMENT_FORBIDDEN = "You are not allowed to comment on this ticket"
+ERROR_INVALID_STATUS_TRANSITION = "Invalid status transition: cannot change from {current} to {target}"
+ERROR_TICKET_CANCEL_NOT_ALLOWED = "You do not have permission to cancel this ticket"
+ERROR_DEVELOPER_CANNOT_CANCEL = "Developers cannot cancel tickets"
+SUCCESS_TICKET_CANCELED = "Ticket canceled successfully"

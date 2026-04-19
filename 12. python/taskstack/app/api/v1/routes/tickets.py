@@ -169,6 +169,27 @@ async def assign_ticket(
     return await ticket_service.assign_ticket_service(ticket_id, assignment_data.assignee_id, current_user)
 
 
+@router.post("/{ticket_id}/cancel", response_model=APIResponse[TicketResponse])
+@require_roles([ROLE_ADMIN, ROLE_PROJECT_MANAGER, ROLE_REPORTER])
+async def cancel_ticket(
+    ticket_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
+):
+    """Cancel a ticket.
+
+    Args:
+        ticket_id: Ticket identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[TicketResponse]: Ticket cancellation response.
+    """
+    ticket_service = TicketService(db)
+    return await ticket_service.cancel_ticket_service(ticket_id, current_user)
+
+
 @router.get("/{ticket_id}/comments", response_model=APIResponse[List[CommentResponse]])
 @require_roles(COMMENT_ROLES)
 async def get_ticket_comments(
