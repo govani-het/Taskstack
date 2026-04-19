@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 
 class ReplyBase(BaseModel):
+    """Base schema for reply payloads."""
     reply: str = Field(..., min_length=1, max_length=1000)
 
     class Config:
@@ -15,14 +16,17 @@ class ReplyBase(BaseModel):
 
 
 class ReplyCreate(ReplyBase):
+    """Schema for creating a reply."""
     pass
 
 
 class ReplyUpdate(ReplyBase):
+    """Schema for updating a reply."""
     pass
 
 
 class ReplyResponse(ReplyBase):
+    """Schema for reply responses."""
     id: UUID
     comment_id: UUID
     project_id: UUID

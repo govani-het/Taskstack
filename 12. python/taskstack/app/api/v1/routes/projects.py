@@ -37,6 +37,9 @@ async def get_projects(
         current_user: Authenticated user payload.
         skip: Number of records to skip.
         limit: Maximum number of records to return.
+
+    Returns:
+        APIResponse[List[ProjectResponse]]: Project list response.
     """
     project_obj = ProjectService(db)
     return await project_obj.get_projects_service(current_user, skip, limit)
@@ -60,6 +63,9 @@ async def get_all_projects(
         organization_id: Optional organization ID to filter projects.
         skip: Number of records to skip.
         limit: Maximum number of records to return.
+
+    Returns:
+        APIResponse[List[ProjectResponse]]: Project list response.
     """
     project_obj = ProjectService(db)
     if organization_id:
@@ -81,8 +87,8 @@ async def get_project(
         db: Database session.
         current_user: Authenticated user payload.
 
-    Raises:
-        HTTPException: If the project is missing or the user lacks access.
+    Returns:
+        APIResponse[ProjectResponse]: Project lookup response.
     """
     project_obj = ProjectService(db)
     return await project_obj.get_project_service(project_id, current_user)
@@ -96,7 +102,17 @@ async def update_project(
         db: Annotated[AsyncSession, Depends(get_db)],
         current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    """Update a project."""
+    """Update a project.
+
+    Args:
+        project_id: Project identifier.
+        project_data: Project update payload.
+        db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[ProjectResponse]: Project update response.
+    """
     project_obj = ProjectService(db)
     return await project_obj.update_project_service(project_id, project_data, current_user)
 
@@ -108,7 +124,16 @@ async def delete_project(
         db: Annotated[AsyncSession, Depends(get_db)],
         current_user: Annotated[dict, Depends(get_current_user)],
 ):
-    """Delete a project."""
+    """Delete a project.
+
+    Args:
+        project_id: Project identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[ProjectResponse]: Project deletion response.
+    """
     project_obj = ProjectService(db)
     return await project_obj.delete_project_service(project_id, current_user)
 
@@ -121,12 +146,17 @@ async def create_project(
         current_user: Annotated[dict, Depends(get_current_user)],
 ):
     """Create a new project.
+
     Args:
+        project_data: Project creation payload.
         db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[ProjectResponse]: Project creation response.
     """
     project_obj = ProjectService(db)
     print("Creating project with data:", project_data)
     return await project_obj.create_project_service(project_data, current_user)
-
 
 

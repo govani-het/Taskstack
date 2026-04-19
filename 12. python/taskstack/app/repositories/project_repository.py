@@ -14,14 +14,14 @@ from app.schemas.project_schemas import ProjectCreate
 
 
 async def get_project_by_id(db: AsyncSession, project_id: UUID) -> Optional[Project]:
-    """Get project.
-    
+    """Fetch a project by ID.
+
     Args:
         db: Database session.
         project_id: Project identifier.
-    
+
     Returns:
-        Optional[Project]: Result of the operation.
+        Optional[Project]: Matching project, if found.
     """
     stmt = (
         select(Project)
@@ -37,16 +37,16 @@ async def get_project_by_id(db: AsyncSession, project_id: UUID) -> Optional[Proj
 
 
 async def get_projects_by_organization(db: AsyncSession, organization_id: UUID, skip: int = 0, limit: int = 100) -> List[Project]:
-    """Get projects by organization.
-    
+    """Fetch projects for an organization.
+
     Args:
         db: Database session.
         organization_id: Organization identifier.
         skip: Number of records to skip.
         limit: Maximum number of records to return.
-    
+
     Returns:
-        List[Project]: Result of the operation.
+        List[Project]: Projects belonging to the organization.
     """
     stmt = (
         select(Project)
@@ -64,7 +64,17 @@ async def get_projects_by_organization(db: AsyncSession, organization_id: UUID, 
 
 
 async def get_projects_by_member(db: AsyncSession, user_id: UUID, skip: int = 0, limit: int = 100) -> List[Project]:
-    """Get projects assigned to a specific user."""
+    """Fetch projects assigned to a specific user.
+
+    Args:
+        db: Database session.
+        user_id: User identifier.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+
+    Returns:
+        List[Project]: Projects assigned to the user.
+    """
     stmt = (
         select(Project)
         .join(Project.members)
@@ -86,7 +96,16 @@ async def get_projects_by_member(db: AsyncSession, user_id: UUID, skip: int = 0,
 
 
 async def get_project_by_id_for_member(db: AsyncSession, project_id: UUID, user_id: UUID) -> Optional[Project]:
-    """Get a project by ID only if the user is assigned to it."""
+    """Fetch a project by ID when the user is assigned to it.
+
+    Args:
+        db: Database session.
+        project_id: Project identifier.
+        user_id: User identifier.
+
+    Returns:
+        Optional[Project]: Matching project, if the user has access.
+    """
     stmt = (
         select(Project)
         .join(Project.members)
@@ -107,15 +126,15 @@ async def get_project_by_id_for_member(db: AsyncSession, project_id: UUID, user_
 
 
 async def get_all_projects(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Project]:
-    """Get all projects.
-    
+    """Fetch all projects.
+
     Args:
         db: Database session.
         skip: Number of records to skip.
         limit: Maximum number of records to return.
-    
+
     Returns:
-        List[Project]: Result of the operation.
+        List[Project]: Project records.
     """
     stmt = (
         select(Project)
@@ -131,14 +150,14 @@ async def get_all_projects(db: AsyncSession, skip: int = 0, limit: int = 100) ->
     return result.scalars().all()
 
 async def create_project(db: AsyncSession, project_data: dict) -> Project:
-    """Create a new project.
+    """Create a project.
 
     Args:
         db: Database session.
         project_data: Project creation payload as a dict.
 
     Returns:
-        Project: Result of the operation.
+        Project: Newly created project.
     """
 
     project_obj = Project(**project_data)
@@ -150,7 +169,17 @@ async def create_project(db: AsyncSession, project_data: dict) -> Project:
 
 
 async def update_project(db: AsyncSession, project: Project, update_data: dict, updated_by_id: UUID) -> Project:
-    """Update a project with audit tracking."""
+    """Update a project with audit tracking.
+
+    Args:
+        db: Database session.
+        project: Project instance to update.
+        update_data: Fields to update.
+        updated_by_id: Identifier of the user updating the project.
+
+    Returns:
+        Project: Updated project.
+    """
     for key, value in update_data.items():
         if hasattr(project, key):
             setattr(project, key, value)
@@ -163,7 +192,16 @@ async def update_project(db: AsyncSession, project: Project, update_data: dict, 
 
 
 async def delete_project(db: AsyncSession, project: Project, deleted_by_id: UUID) -> Project:
-    """Soft delete a project with audit tracking."""
+    """Soft-delete a project with audit tracking.
+
+    Args:
+        db: Database session.
+        project: Project instance to delete.
+        deleted_by_id: Identifier of the user deleting the project.
+
+    Returns:
+        Project: Soft-deleted project.
+    """
     project.is_active = False
     project.deleted_by = deleted_by_id
     project.deleted_at = datetime.now(timezone.utc)

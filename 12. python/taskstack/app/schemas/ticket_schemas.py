@@ -12,6 +12,7 @@ TicketPriority = Literal["high", "intermediate", "low"]
 
 
 class TicketBase(BaseModel):
+    """Base schema for ticket payloads."""
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     type: TicketType = Field(...)
@@ -30,6 +31,7 @@ class TicketCreate(TicketBase):
 
 
 class TicketUpdate(BaseModel):
+    """Schema for updating a ticket."""
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     status: Optional[TicketStatus] = Field(None)
@@ -41,7 +43,16 @@ class TicketUpdate(BaseModel):
         from_attributes = True
 
 
+class TicketAssign(BaseModel):
+    """Schema for assigning a ticket to a user."""
+    assignee_id: UUID
+
+    class Config:
+        from_attributes = True
+
+
 class TicketResponse(TicketBase):
+    """Schema for ticket responses."""
     id: UUID
     project_id: UUID
     created_by: Optional[UUID] = None

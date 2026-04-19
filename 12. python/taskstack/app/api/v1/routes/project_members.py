@@ -99,6 +99,17 @@ async def remove_project_member(
         current_user: Annotated[dict, Depends(get_current_user)],
         project_id: UUID,
 ):
+    """Remove a member from a project.
+
+    Args:
+        project_member: Project member removal payload.
+        db: Database session.
+        current_user: Authenticated user payload.
+        project_id: Project identifier.
+
+    Returns:
+        APIResponse[ProjectMemberResponse]: Project member removal response.
+    """
     project_member_obj = ProjectMemberService(db)
     return await project_member_obj.remove_project_member_service(project_member, project_id, current_user)
 

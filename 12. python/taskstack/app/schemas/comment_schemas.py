@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 
 class CommentBase(BaseModel):
+    """Base schema for comment payloads."""
     comment: str = Field(..., min_length=1, max_length=1000)
 
     class Config:
@@ -15,14 +16,17 @@ class CommentBase(BaseModel):
 
 
 class CommentCreate(CommentBase):
+    """Schema for creating a comment."""
     pass
 
 
 class CommentUpdate(CommentBase):
+    """Schema for updating a comment."""
     pass
 
 
 class CommentResponse(CommentBase):
+    """Schema for comment responses."""
     id: UUID
     ticket_id: UUID
     project_id: UUID
