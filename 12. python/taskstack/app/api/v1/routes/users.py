@@ -11,7 +11,7 @@ from app.services.user_service import UserService
 from app.schemas.response_schemas import APIResponse
 from app.authentication.role_base_auth_token import get_current_user
 
-from app.constant.role_constant import ROLE_SYSTEM_ADMIN,ROLE_ADMIN,ROLE_DEVELOPER,ROLE_PROJECT_MANAGER,ROLE_TESTER
+from app.constant.role_constant import ROLE_SYSTEM_ADMIN,ROLE_ADMIN,ROLE_DEVELOPER,ROLE_PROJECT_MANAGER,ROLE_REPORTER
 from app.utils.access_control import require_roles
 
 router = APIRouter(
@@ -75,7 +75,7 @@ async def get_users(
 
 
 @router.patch("/{user_id}", response_model=APIResponse[UserResponse])
-@require_roles([ROLE_ADMIN,ROLE_DEVELOPER,ROLE_PROJECT_MANAGER,ROLE_TESTER])
+@require_roles([ROLE_ADMIN,ROLE_DEVELOPER,ROLE_PROJECT_MANAGER,ROLE_REPORTER])
 async def update_user(
     user_id: UUID,
     update_data: UserUpdate,

@@ -142,7 +142,7 @@ class ProjectMemberService:
             if role_to_assign.name == ROLE_PROJECT_MANAGER:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Project managers can only add developers and testers, not other project managers."
+                    detail="Project managers can only add developers and reporters, not other project managers."
                 )
             # PM is automatically set as the project_manager_id for members they add
             project_member_data.project_manager_id = UUID(current_user.get("id"))

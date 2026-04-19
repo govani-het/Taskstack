@@ -20,7 +20,7 @@ ROLE_SYSTEM_ADMIN = "system admin"
 ROLE_ADMIN = "admin"
 ROLE_PROJECT_MANAGER = "project manager"
 ROLE_DEVELOPER = "developer"
-ROLE_TESTER = "tester"
+ROLE_REPORTER = "reporter"
 
 # Success messages
 SUCCESS_ROLE_CREATED = "Role created successfully"
