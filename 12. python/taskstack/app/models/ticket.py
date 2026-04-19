@@ -54,9 +54,9 @@ class Ticket(TimestampRequiredMixin, ProjectMemberAuditMixin, Base):
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     title = Column(String(200), nullable=False)
     description = Column(String(1000), nullable=True)
-    type = Column(String(50), nullable=False)  # e.g., Bug, Feature, Task
-    status = Column(String(50), nullable=False, default="Open")  # e.g., Open, In Progress, Closed
-    priority = Column(String(50), nullable=False, default="Medium")  # e.g., Low, Medium, High
+    type = Column(String(50), nullable=False)
+    status = Column(String(50), nullable=False, default="pending")
+    priority = Column(String(50), nullable=False, default="intermediate")
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
     assignee_id = Column(UUID(as_uuid=True), ForeignKey("project_members.id"), nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=True)

@@ -117,6 +117,22 @@ async def get_project_member_by_user_and_project(db: AsyncSession, user_id: UUID
     return result.scalar_one_or_none()
 
 
+async def get_project_member_by_id(db: AsyncSession, member_id: UUID) -> ProjectMember | None:
+    """Get a project member by project member id."""
+    stmt = (
+        select(ProjectMember)
+        .options(
+            selectinload(ProjectMember.user).selectinload(User.role),
+            selectinload(ProjectMember.role),
+            selectinload(ProjectMember.project),
+            selectinload(ProjectMember.project_manager),
+        )
+        .where(ProjectMember.id == member_id)
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
 async def get_project_manager_member(db: AsyncSession, user_id: UUID, project_id: UUID) -> ProjectMember | None:
     """Get a project member where the user is the project manager.
     
