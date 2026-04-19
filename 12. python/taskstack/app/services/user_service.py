@@ -30,13 +30,16 @@ from app.constant.user_constant import (
     SUCCESS_USERS_FETCHED,
     SUCCESS_USER_UPDATED,
     SUCCESS_USER_DELETED,
+    SUCCESS_USER_PROMOTED_TO_ADMIN,
     ERROR_EMAIL_ALREADY_REGISTERED,
     ERROR_CANNOT_CREATE_ROLE_USER,
     ERROR_INVALID_ROLE_NAME,
     ERROR_INVALID_ORGANIZATION_NAME,
     ERROR_USER_NOT_FOUND,
     ERROR_FAILED_TO_DELETE_USER,
-    ERROR_USER_CAN_UPDATE_OWN_PROFILE
+    ERROR_USER_CAN_UPDATE_OWN_PROFILE,
+    ERROR_ONLY_ADMIN_CAN_PROMOTE,
+    ERROR_CANNOT_PROMOTE_TO_ADMIN,
 )
 
 from app.constant.role_constant import ROLE_SYSTEM_ADMIN, ROLE_ADMIN
@@ -220,3 +223,43 @@ class UserService:
         if response:
             return APIResponse.success_response(SUCCESS_USER_DELETED)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_FAILED_TO_DELETE_USER)
+
+    async def promote_to_admin_service(self, user_id: UUID, current_user: dict) -> APIResponse[UserResponse]:
+        """Promote a user to admin role. Only existing admins can promote users.
+
+        Args:
+            user_id: User identifier to promote.
+            current_user: Current authenticated user (must be admin).
+
+        Returns:
+            APIResponse[UserResponse]: Promoted user response.
+        """
+        # Only admins can promote users to admin
+        if current_user.get("role") != ROLE_ADMIN:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_ONLY_ADMIN_CAN_PROMOTE)
+
+        # Get target user
+        target_user = await get_user_by_id(self.db, user_id)
+        if not target_user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_USER_NOT_FOUND)
+
+        # Check if target user belongs to same organization
+        admin_org_id = current_user.get("organization_id")
+        if str(target_user.organization_id) != admin_org_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_CANNOT_PROMOTE_TO_ADMIN)
+
+        # Get admin role
+        admin_role = await self.validate_role_exists(ROLE_ADMIN)
+        if not admin_role:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_INVALID_ROLE_NAME)
+
+        # Promote user to admin
+        update_data = {
+            "role_id": admin_role.id,
+            "updated_by": UUID(current_user.get("id"))
+        }
+        updated_user = await update_user(self.db, user_id, update_data)
+        if updated_user:
+            updated_user = await get_user_by_id(self.db, user_id)
+            return APIResponse.success_response(SUCCESS_USER_PROMOTED_TO_ADMIN, UserResponse.model_validate(updated_user))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_CANNOT_PROMOTE_TO_ADMIN)

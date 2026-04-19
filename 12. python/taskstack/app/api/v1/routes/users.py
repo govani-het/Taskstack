@@ -109,3 +109,21 @@ async def delete_user(
     """
     user_obj = UserService(db)
     return await user_obj.delete_user_service(user_id, UUID(current_user["id"]))
+
+
+@router.post("/{user_id}/promote-to-admin", response_model=APIResponse[UserResponse])
+@require_roles([ROLE_ADMIN])
+async def promote_to_admin(
+    user_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
+):
+    """Promote a user to admin role. Only admins can promote users.
+
+    Args:
+        user_id: User identifier to promote.
+        db: Database session.
+        current_user: Authenticated admin user.
+    """
+    user_obj = UserService(db)
+    return await user_obj.promote_to_admin_service(user_id, current_user)

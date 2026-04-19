@@ -49,6 +49,9 @@ class RoleService:
 
         Returns:
             APIResponse[RoleResponse]: Standardized role creation response.
+
+        Raises:
+            HTTPException: If the role name already exists or creation fails.
         """
         # Check if role name already exists
         existing_role = await get_role_by_name(self.db, role_data.name)
@@ -70,6 +73,9 @@ class RoleService:
 
         Returns:
             APIResponse[Optional[RoleResponse]]: Standardized role lookup response.
+
+        Raises:
+            HTTPException: If the role does not exist.
         """
         role = await get_role_by_id(self.db, role_id)
         if role:
@@ -99,6 +105,9 @@ class RoleService:
 
         Returns:
             APIResponse[Optional[RoleResponse]]: Standardized role update response.
+
+        Raises:
+            HTTPException: If the role name already exists or the role does not exist.
         """
         update_dict = update_data.model_dump(exclude_unset=True)
 
@@ -125,6 +134,9 @@ class RoleService:
 
         Returns:
             APIResponse[str]: Standardized role deletion response.
+
+        Raises:
+            HTTPException: If the role cannot be deleted.
         """
         response = await delete_role(self.db, role_id, deleted_by)
         if response:

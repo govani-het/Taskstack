@@ -22,16 +22,40 @@ class ReplyService:
     """Provides reply business logic."""
 
     def __init__(self, db: AsyncSession):
+        """Initialize the service.
+
+        Args:
+            db: Database session.
+        """
         self.db = db
 
     async def _assert_comment_exists(self, comment_id: UUID):
+        """Validate that a comment exists.
+
+        Args:
+            comment_id: Comment identifier.
+
+        Returns:
+            Any: Matching comment record.
+
+        Raises:
+            HTTPException: If the comment does not exist.
+        """
         comment = await get_comment_by_id(self.db, comment_id)
         if not comment:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_REPLY_FORBIDDEN)  # Using existing constant
         return comment
 
     async def _assert_member_has_access(self, comment, current_user: dict):
-        # Check access to the ticket via comment
+        """Validate that the user can access the reply's project.
+
+        Args:
+            comment: Comment record.
+            current_user: Authenticated user payload.
+
+        Raises:
+            HTTPException: If the user does not have access.
+        """
         if current_user.get("role") == ROLE_ADMIN:
             if str(comment.project.organization_id) != current_user.get("organization_id"):
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_REPLY_FORBIDDEN)
@@ -43,12 +67,33 @@ class ReplyService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_REPLY_FORBIDDEN)
 
     async def _assert_reply_exists(self, reply_id: UUID):
+        """Validate that a reply exists.
+
+        Args:
+            reply_id: Reply identifier.
+
+        Returns:
+            Any: Matching reply record.
+
+        Raises:
+            HTTPException: If the reply does not exist.
+        """
         reply = await get_reply_by_id(self.db, reply_id)
         if not reply:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_REPLY_NOT_FOUND)
         return reply
 
     async def _assert_reply_permission(self, reply, current_user: dict, action: str):
+        """Validate that the user can modify a reply.
+
+        Args:
+            reply: Reply record.
+            current_user: Authenticated user payload.
+            action: Requested action name.
+
+        Raises:
+            HTTPException: If the user is not allowed to perform the action.
+        """
         role = current_user.get("role")
 
         if role in [ROLE_DEVELOPER, ROLE_REPORTER]:
@@ -61,12 +106,33 @@ class ReplyService:
                     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_REPLY_DELETE_FORBIDDEN)
 
     async def get_replies_by_comment_service(self, comment_id: UUID, current_user: dict, skip: int = 0, limit: int = 100) -> APIResponse[List[ReplyResponse]]:
+        """Get replies for a comment.
+
+        Args:
+            comment_id: Comment identifier.
+            current_user: Authenticated user payload.
+            skip: Number of records to skip.
+            limit: Maximum number of records to return.
+
+        Returns:
+            APIResponse[List[ReplyResponse]]: Reply list response.
+        """
         comment = await self._assert_comment_exists(comment_id)
         await self._assert_member_has_access(comment, current_user)
         replies = await get_replies_by_comment(self.db, comment_id, skip, limit)
         return APIResponse.success_response(SUCCESS_REPLIES_FETCHED, [ReplyResponse.model_validate(reply) for reply in replies])
 
     async def create_reply_service(self, comment_id: UUID, reply_data: ReplyCreate, current_user: dict) -> APIResponse[ReplyResponse]:
+        """Create a reply.
+
+        Args:
+            comment_id: Comment identifier.
+            reply_data: Reply creation payload.
+            current_user: Authenticated user payload.
+
+        Returns:
+            APIResponse[ReplyResponse]: Reply creation response.
+        """
         comment = await self._assert_comment_exists(comment_id)
         await self._assert_member_has_access(comment, current_user)
 
@@ -84,6 +150,16 @@ class ReplyService:
         return APIResponse.success_response(SUCCESS_REPLY_CREATED, ReplyResponse.model_validate(reply))
 
     async def update_reply_service(self, reply_id: UUID, reply_data: ReplyUpdate, current_user: dict) -> APIResponse[ReplyResponse]:
+        """Update a reply.
+
+        Args:
+            reply_id: Reply identifier.
+            reply_data: Reply update payload.
+            current_user: Authenticated user payload.
+
+        Returns:
+            APIResponse[ReplyResponse]: Reply update response.
+        """
         reply = await self._assert_reply_exists(reply_id)
         await self._assert_reply_permission(reply, current_user, "update")
 
@@ -99,6 +175,15 @@ class ReplyService:
         return APIResponse.success_response(SUCCESS_REPLY_UPDATED, ReplyResponse.model_validate(updated_reply))
 
     async def delete_reply_service(self, reply_id: UUID, current_user: dict) -> APIResponse[dict]:
+        """Delete a reply.
+
+        Args:
+            reply_id: Reply identifier.
+            current_user: Authenticated user payload.
+
+        Returns:
+            APIResponse[dict]: Reply deletion response.
+        """
         reply = await self._assert_reply_exists(reply_id)
         await self._assert_reply_permission(reply, current_user, "delete")
 

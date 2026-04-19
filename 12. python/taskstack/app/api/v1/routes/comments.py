@@ -38,6 +38,18 @@ async def get_comments_by_ticket(
     skip: int = 0,
     limit: int = 100,
 ):
+    """Get comments for a ticket.
+
+    Args:
+        ticket_id: Ticket identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+
+    Returns:
+        APIResponse[List[CommentResponse]]: Comment list response.
+    """
     comment_service = CommentService(db)
     return await comment_service.get_comments_by_ticket_service(ticket_id, current_user, skip, limit)
 
@@ -50,6 +62,17 @@ async def create_comment(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ):
+    """Create a comment for a ticket.
+
+    Args:
+        ticket_id: Ticket identifier.
+        comment_data: Comment creation payload.
+        db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[CommentResponse]: Comment creation response.
+    """
     comment_service = CommentService(db)
     return await comment_service.create_comment_service(ticket_id, comment_data, current_user)
 
@@ -62,6 +85,17 @@ async def update_comment(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ):
+    """Update an existing comment.
+
+    Args:
+        comment_id: Comment identifier.
+        comment_data: Comment update payload.
+        db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[CommentResponse]: Comment update response.
+    """
     comment_service = CommentService(db)
     return await comment_service.update_comment_service(comment_id, comment_data, current_user)
 
@@ -73,5 +107,15 @@ async def delete_comment(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ):
+    """Delete a comment.
+
+    Args:
+        comment_id: Comment identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[dict]: Comment deletion response.
+    """
     comment_service = CommentService(db)
     return await comment_service.delete_comment_service(comment_id, current_user)

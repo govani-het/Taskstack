@@ -38,6 +38,18 @@ async def get_replies_by_comment(
     skip: int = 0,
     limit: int = 100,
 ):
+    """Get replies for a comment.
+
+    Args:
+        comment_id: Comment identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+        skip: Number of records to skip.
+        limit: Maximum number of records to return.
+
+    Returns:
+        APIResponse[List[ReplyResponse]]: Reply list response.
+    """
     reply_service = ReplyService(db)
     return await reply_service.get_replies_by_comment_service(comment_id, current_user, skip, limit)
 
@@ -50,6 +62,17 @@ async def create_reply(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ):
+    """Create a reply for a comment.
+
+    Args:
+        comment_id: Comment identifier.
+        reply_data: Reply creation payload.
+        db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[ReplyResponse]: Reply creation response.
+    """
     reply_service = ReplyService(db)
     return await reply_service.create_reply_service(comment_id, reply_data, current_user)
 
@@ -62,6 +85,17 @@ async def update_reply(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ):
+    """Update an existing reply.
+
+    Args:
+        reply_id: Reply identifier.
+        reply_data: Reply update payload.
+        db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[ReplyResponse]: Reply update response.
+    """
     reply_service = ReplyService(db)
     return await reply_service.update_reply_service(reply_id, reply_data, current_user)
 
@@ -73,5 +107,15 @@ async def delete_reply(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ):
+    """Delete a reply.
+
+    Args:
+        reply_id: Reply identifier.
+        db: Database session.
+        current_user: Authenticated user payload.
+
+    Returns:
+        APIResponse[dict]: Reply deletion response.
+    """
     reply_service = ReplyService(db)
     return await reply_service.delete_reply_service(reply_id, current_user)

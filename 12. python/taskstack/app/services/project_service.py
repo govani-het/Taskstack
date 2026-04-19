@@ -124,7 +124,16 @@ class ProjectService:
         return await self.get_projects_by_member_service(UUID(current_user.get("id")), skip, limit)
 
     async def get_projects_by_member_service(self, user_id: UUID, skip: int = 0, limit: int = 100) -> APIResponse[List[ProjectResponse]]:
-        """Get projects assigned to a specific user."""
+        """Get projects assigned to a specific user.
+
+        Args:
+            user_id: User identifier.
+            skip: Number of records to skip.
+            limit: Maximum number of records to return.
+
+        Returns:
+            APIResponse[List[ProjectResponse]]: Standardized project list response.
+        """
         projects = await get_projects_by_member(self.db, user_id, skip, limit)
         return APIResponse.success_response(SUCCESS_PROJECTS_FETCHED, [ProjectResponse.model_validate(project) for project in projects])
 
@@ -160,10 +169,14 @@ class ProjectService:
 
     async def update_project_service(self, project_id: UUID, project_data: ProjectUpdate, current_user: dict) -> APIResponse[ProjectResponse]:
         """Update a project with role-based access control.
-        
-        Router decorator ensures user is one of: ROLE_ADMIN, ROLE_PROJECT_MANAGER
-        - ADMIN: Can update any project in their organization
-        - PROJECT_MANAGER: Can only update projects where they are assigned as project manager
+
+        Args:
+            project_id: Project identifier.
+            project_data: Project update payload.
+            current_user: Authenticated user payload.
+
+        Returns:
+            APIResponse[ProjectResponse]: Standardized project update response.
         """
         project = await get_project_by_id(self.db, project_id)
         if not project:
@@ -196,9 +209,13 @@ class ProjectService:
 
     async def delete_project_service(self, project_id: UUID, current_user: dict) -> APIResponse[ProjectResponse]:
         """Delete a project with role-based access control.
-        
-        Router decorator ensures user is ROLE_ADMIN only
-        - ADMIN: Can only delete projects in their organization
+
+        Args:
+            project_id: Project identifier.
+            current_user: Authenticated user payload.
+
+        Returns:
+            APIResponse[ProjectResponse]: Standardized project deletion response.
         """
         project = await get_project_by_id(self.db, project_id)
         if not project:
@@ -222,8 +239,13 @@ class ProjectService:
 
     async def create_project_service(self, project_data: ProjectCreate, current_user: dict) -> APIResponse[Optional[ProjectResponse]]:
         """Create a new project.
+
         Args:
+            project_data: Project creation payload.
             current_user: Authenticated user payload.
+
+        Returns:
+            APIResponse[Optional[ProjectResponse]]: Standardized project creation response.
         """
         from app.services.organization_subscription_service import OrganizationSubscriptionService
 
