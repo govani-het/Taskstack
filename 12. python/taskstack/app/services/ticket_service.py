@@ -42,6 +42,7 @@ from app.constant.ticket_constant import (
     ERROR_INVALID_STATUS_TRANSITION,
     ERROR_TICKET_CANCEL_NOT_ALLOWED,
     ERROR_DEVELOPER_CANNOT_CANCEL,
+    ERROR_TICKETS_NOT_FOUND,
     SUCCESS_TICKET_CREATED,
     SUCCESS_TICKET_FETCHED,
     SUCCESS_TICKETS_FETCHED,
@@ -121,6 +122,7 @@ class TicketService:
         Raises:
             HTTPException: If the project belongs to a different organization.
         """
+
         if not organization_id or str(project.organization_id) != organization_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_TICKET_FORBIDDEN)
 
@@ -205,6 +207,8 @@ class TicketService:
             await self._assert_project_member(project_id, user_id)
 
         tickets = await get_tickets_by_project(self.db, project_id, skip, limit)
+        if tickets == []:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_TICKETS_NOT_FOUND)
         return APIResponse.success_response(SUCCESS_TICKETS_FETCHED, [TicketResponse.model_validate(ticket) for ticket in tickets])
 
     async def get_ticket_service(self, ticket_id: UUID, current_user: dict) -> APIResponse[TicketResponse]:
@@ -315,7 +319,13 @@ class TicketService:
         user_project_member = await get_project_member_by_user_and_project(self.db, user_id, ticket.project_id)
         if user_project_member:
             update_payload["updated_by"] = user_project_member.id
-        
+
+            if update_payload.get("status") == STATUS_COMPLETED:
+                update_payload["resolved_by"] = user_project_member.id
+                update_payload["resolved_at"] = datetime.now(timezone.utc)
+        elif update_payload.get("status") == STATUS_COMPLETED:
+            update_payload["resolved_at"] = datetime.now(timezone.utc)
+
         updated_ticket = await update_ticket(self.db, ticket, update_payload)
         return APIResponse.success_response(SUCCESS_TICKET_UPDATED, TicketResponse.model_validate(updated_ticket))
 
