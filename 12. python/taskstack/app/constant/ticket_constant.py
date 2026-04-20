@@ -23,9 +23,9 @@ STATUS_CANCELED = "canceled"
 # Status workflow transitions (valid next statuses from current status)
 STATUS_WORKFLOW = {
     STATUS_PENDING: [STATUS_PROCESS, STATUS_CANCELED],
-    STATUS_PROCESS: [STATUS_COMPLETED, STATUS_CANCELED],
+    STATUS_PROCESS: [STATUS_PENDING, STATUS_COMPLETED, STATUS_CANCELED],
     STATUS_COMPLETED: [],
-    STATUS_CANCELED: [],
+    STATUS_CANCELED: [STATUS_PENDING],
 }
 
 # Ticket priorities
@@ -49,6 +49,7 @@ ERROR_TICKET_NOT_FOUND = "Ticket not found"
 ERROR_TICKET_FORBIDDEN = "Access denied for this ticket"
 ERROR_PROJECT_NOT_FOUND = "Project not found"
 ERROR_TICKET_NOT_IN_PROJECT = "Ticket does not belong to the requested project"
+ERROR_TICKETS_NOT_FOUND = "No tickets found for this project"
 ERROR_ASSIGNEE_INVALID = "Assignee must be an active project member with the proper role"
 ERROR_TICKET_ASSIGNMENT_NOT_ALLOWED = "You cannot assign this ticket"
 ERROR_TICKET_ASSIGN_NOT_ALLOWED = "Only project managers and admins can assign tickets"

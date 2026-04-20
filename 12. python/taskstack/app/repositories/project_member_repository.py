@@ -109,8 +109,9 @@ async def get_project_member_by_user_and_project(db: AsyncSession, user_id: UUID
     stmt = (
         select(ProjectMember)
         .where(
-            ProjectMember.id == user_id,
-            ProjectMember.project_id == project_id
+            ProjectMember.user_id == user_id,
+            ProjectMember.project_id == project_id,
+            ProjectMember.is_active == True
         )
     )
     result = await db.execute(stmt)

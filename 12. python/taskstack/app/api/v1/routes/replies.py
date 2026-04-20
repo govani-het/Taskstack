@@ -77,7 +77,7 @@ async def create_reply(
     return await reply_service.create_reply_service(comment_id, reply_data, current_user)
 
 
-@router.put("/{reply_id}", response_model=APIResponse[ReplyResponse])
+@router.patch("/{reply_id}", response_model=APIResponse[ReplyResponse])
 @require_roles(UPDATE_ROLES)
 async def update_reply(
     reply_id: UUID,

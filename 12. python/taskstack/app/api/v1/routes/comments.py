@@ -77,7 +77,7 @@ async def create_comment(
     return await comment_service.create_comment_service(ticket_id, comment_data, current_user)
 
 
-@router.put("/{comment_id}", response_model=APIResponse[CommentResponse])
+@router.patch("/{comment_id}", response_model=APIResponse[CommentResponse])
 @require_roles(UPDATE_ROLES)
 async def update_comment(
     comment_id: UUID,
