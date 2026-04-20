@@ -24,9 +24,12 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
 
-class TokenData(BaseModel):
-    """Schema for decoded token data."""
-    username: str | None = None
-    user_id: str | None = None
-    role: str | None = None
-    organization_id: str | None = None
+class ForgotPasswordRequest(BaseModel):
+    """Schema for forgot password requests."""
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    """Schema for reset password requests."""
+    token: str
+    new_password: str
