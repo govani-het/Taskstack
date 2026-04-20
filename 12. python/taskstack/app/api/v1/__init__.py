@@ -13,6 +13,7 @@ from .routes.tickets import router as tickets_router
 from .routes.comments import router as comments_router
 from .routes.replies import router as replies_router
 from .routes.work_logs import router as work_logs_router
+from .routes.dashboard import router as dashboard_router
 
 router = APIRouter(prefix="/app/v1")
 router.include_router(users_router)
@@ -26,3 +27,4 @@ router.include_router(tickets_router)
 router.include_router(comments_router)
 router.include_router(replies_router)
 router.include_router(work_logs_router)
+router.include_router(dashboard_router)
