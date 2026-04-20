@@ -7,7 +7,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from app.models.users import User
-
+from app.utils.hash_password import hash_password
 
 async def get_user_by_id(db: AsyncSession, user_id: UUID) -> Optional[User]:
     """Fetch a user by ID.
@@ -105,6 +105,22 @@ async def update_user(db: AsyncSession, user_id: UUID, update_data: dict) -> Opt
     result = await db.execute(stmt)
     await db.commit()
     return result.scalar_one_or_none()
+
+
+async def update_user_password(db: AsyncSession, user_id: UUID, new_password: str) -> Optional[User]:
+    """Update a user's password.
+
+    Args:
+        db: Database session.
+        user_id: User identifier.
+        new_password: New hashed password.
+
+    Returns:
+        Optional[User]: Updated user, if found.
+    """
+    
+    hashed_password = hash_password(new_password)
+    return await update_user(db, user_id, {"password": hashed_password})
 
 
 async def delete_user(db: AsyncSession, user_id: UUID, deleted_by: Optional[UUID] = None) -> bool:

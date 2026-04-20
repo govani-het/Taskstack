@@ -10,6 +10,7 @@ from app.schemas import login_schemas
 from app.config.database import get_db
 from app.repositories.auth_query import get_active_user_by_email
 from app.authentication.role_base_auth_token import create_token
+from app.schemas.response_schemas import APIResponse
 
 from datetime import timedelta
 import os
@@ -91,3 +92,41 @@ async def login(request: Annotated[OAuth2PasswordRequestForm , Depends()], db: A
 #     user_id = uuid.UUID(current_user["id"])
 #     await revoke_refresh_tokens_by_user(db, user_id)
 #     return {"message": "Successfully logged out. Please clear your local tokens."}
+
+
+@router.post("/forgot-password", response_model=APIResponse)
+async def forgot_password(
+    request: login_schemas.ForgotPasswordRequest,
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    """Request password reset.
+
+    Args:
+        request: Forgot password request data.
+        db: Database session.
+
+    Returns:
+        APIResponse with success message.
+    """
+    from app.services.auth_service import AuthService
+    service = AuthService(db)
+    return await service.forgot_password_service(request)
+
+
+@router.post("/reset-password", response_model=APIResponse)
+async def reset_password(
+    request: login_schemas.ResetPasswordRequest,
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    """Reset password using token.
+
+    Args:
+        request: Reset password request data.
+        db: Database session.
+
+    Returns:
+        APIResponse with success message.
+    """
+    from app.services.auth_service import AuthService
+    service = AuthService(db)
+    return await service.reset_password_service(request)
