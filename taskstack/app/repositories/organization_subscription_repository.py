@@ -1,11 +1,12 @@
 """OrganizationSubscription repository functions."""
 
-from sqlalchemy import select, update, func, and_, or_
+from sqlalchemy import select, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
 
 from app.models.organization_subscription import OrganizationSubscription
+from app.repositories.audit import utc_now
 
 
 async def get_organization_subscription_by_id(db: AsyncSession, subscription_id: UUID) -> Optional[OrganizationSubscription]:
@@ -18,7 +19,10 @@ async def get_organization_subscription_by_id(db: AsyncSession, subscription_id:
     Returns:
         Optional[OrganizationSubscription]: Result of the operation.
     """
-    stmt = select(OrganizationSubscription).where(OrganizationSubscription.subscription_id == subscription_id)
+    stmt = select(OrganizationSubscription).where(
+        OrganizationSubscription.id == subscription_id,
+        OrganizationSubscription.is_active == True,
+    )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -101,13 +105,18 @@ async def cancel_organization_subscription(db: AsyncSession, subscription_id: UU
     Returns:
         Optional[OrganizationSubscription]: Result of the operation.
     """
+    cancelled_at = utc_now()
     stmt = (
         update(OrganizationSubscription)
-        .where(OrganizationSubscription.id == subscription_id)
+        .where(OrganizationSubscription.id == subscription_id, OrganizationSubscription.is_active == True)
         .values(
-            cancelled_at=func.now(),
+            cancelled_at=cancelled_at,
             cancelled_by=cancelled_by,
-            is_active=False
+            is_active=False,
+            updated_at=cancelled_at,
+            updated_by=cancelled_by,
+            deleted_at=cancelled_at,
+            deleted_by=cancelled_by,
         )
         .returning(OrganizationSubscription)
     )
@@ -130,7 +139,10 @@ async def get_organization_subscriptions(db: AsyncSession, organization_id: UUID
     """
     stmt = (
         select(OrganizationSubscription)
-        .where(OrganizationSubscription.organization_id == organization_id)
+        .where(
+            OrganizationSubscription.organization_id == organization_id,
+            OrganizationSubscription.is_active == True,
+        )
         .offset(skip)
         .limit(limit)
     )

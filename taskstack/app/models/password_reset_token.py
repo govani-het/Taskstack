@@ -6,10 +6,10 @@ from datetime import datetime, timezone
 from sqlalchemy import UUID, Boolean, Column, DateTime, ForeignKey, String, func
 
 from app.config.database import Base
-from app.models.model_columns import TimestampRequiredMixin
+from app.models.model_columns import TimestampRequiredMixin, UserAuditMixin
 
 
-class PasswordResetToken(TimestampRequiredMixin, Base):
+class PasswordResetToken(TimestampRequiredMixin, UserAuditMixin, Base):
     """Represents a password reset token record."""
     __tablename__ = "password_reset_tokens"
 
@@ -18,6 +18,7 @@ class PasswordResetToken(TimestampRequiredMixin, Base):
     token = Column(String(32), nullable=False, unique=True)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     used = Column(Boolean, default=False, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     def is_expired(self) -> bool:
         """Check if the token has expired."""

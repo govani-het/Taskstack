@@ -5,11 +5,11 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from uuid import UUID
-from datetime import datetime, timezone
 
 from app.models.project_member import ProjectMember
 from app.models.users import User
 from app.models.projects import Project
+from app.repositories.audit import mark_deleted, mark_reactivated
 
 
 async def get_project_members_by_project(db: AsyncSession, project_id: UUID, skip: int = 0, limit: int = 100) -> List[ProjectMember]:
@@ -89,13 +89,18 @@ async def create_project_member(db: AsyncSession, member_data: dict) -> ProjectM
             selectinload(ProjectMember.project),
             selectinload(ProjectMember.project_manager)
         )
-        .where(ProjectMember.id == project_member.id)
+        .where(ProjectMember.id == project_member.id, ProjectMember.is_active == True)
     )
     result = await db.execute(stmt)
     return result.scalar_one()
 
 
-async def get_project_member_by_user_and_project(db: AsyncSession, user_id: UUID, project_id: UUID) -> ProjectMember | None:
+async def get_project_member_by_user_and_project(
+    db: AsyncSession,
+    user_id: UUID,
+    project_id: UUID,
+    include_inactive: bool = False,
+) -> ProjectMember | None:
     """Get a project member by user and project.
     
     Args:
@@ -106,14 +111,13 @@ async def get_project_member_by_user_and_project(db: AsyncSession, user_id: UUID
     Returns:
         ProjectMember | None: The project member or None if not found.
     """
-    stmt = (
-        select(ProjectMember)
-        .where(
-            ProjectMember.user_id == user_id,
-            ProjectMember.project_id == project_id,
-            ProjectMember.is_active == True
-        )
-    )
+    filters = [
+        ProjectMember.user_id == user_id,
+        ProjectMember.project_id == project_id,
+    ]
+    if not include_inactive:
+        filters.append(ProjectMember.is_active == True)
+    stmt = select(ProjectMember).where(*filters)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -128,7 +132,7 @@ async def get_project_member_by_id(db: AsyncSession, member_id: UUID) -> Project
             selectinload(ProjectMember.project),
             selectinload(ProjectMember.project_manager),
         )
-        .where(ProjectMember.id == member_id)
+        .where(ProjectMember.id == member_id, ProjectMember.is_active == True)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
@@ -167,9 +171,7 @@ async def remove_project_member(db: AsyncSession, existing_member: ProjectMember
     Returns:
         ProjectMember: The removed project member.
     """
-    existing_member.is_active = False
-    existing_member.deleted_by = deleted_by_id
-    existing_member.deleted_at = datetime.now(timezone.utc)
+    mark_deleted(existing_member, deleted_by_id)
     db.add(existing_member)
     await db.commit()
     await db.refresh(existing_member)
@@ -204,6 +206,9 @@ async def update_project_member(db: AsyncSession, existing_member: ProjectMember
     for key, value in update_data.items():
         if hasattr(existing_member, key):
             setattr(existing_member, key, value)
+
+    if update_data.get("is_active") is True:
+        mark_reactivated(existing_member, updated_by_id)
     
     existing_member.updated_by = updated_by_id
     db.add(existing_member)

@@ -6,6 +6,7 @@ from typing import List
 from uuid import UUID
 
 from app.models.reply import Reply
+from app.repositories.audit import mark_deleted
 
 
 async def get_replies_by_comment(db: AsyncSession, comment_id: UUID, skip: int = 0, limit: int = 100) -> List[Reply]:
@@ -99,8 +100,7 @@ async def delete_reply(db: AsyncSession, reply_id: UUID, deleted_by: UUID) -> Re
     result = await db.execute(stmt)
     reply = result.scalar_one_or_none()
     if reply:
-        reply.is_active = False
-        reply.deleted_by = deleted_by
+        mark_deleted(reply, deleted_by)
         await db.commit()
         await db.refresh(reply)
     return reply

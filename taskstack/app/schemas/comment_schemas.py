@@ -32,7 +32,10 @@ class CommentResponse(CommentBase):
     project_id: UUID
     created_by: UUID
     created_at: Optional[datetime] = None
+    updated_by: Optional[UUID] = None
     updated_at: Optional[datetime] = None
+    deleted_by: Optional[UUID] = None
+    deleted_at: Optional[datetime] = None
     is_active: bool
 
     class Config:

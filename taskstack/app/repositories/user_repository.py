@@ -1,12 +1,13 @@
 """User repository functions."""
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
 
 from app.models.users import User
+from app.repositories.audit import utc_now
 from app.utils.hash_password import hash_password
 
 async def get_user_by_id(db: AsyncSession, user_id: UUID) -> Optional[User]:
@@ -22,7 +23,7 @@ async def get_user_by_id(db: AsyncSession, user_id: UUID) -> Optional[User]:
     stmt = (
         select(User)
         .options(selectinload(User.role), selectinload(User.organization))
-        .where(User.id == user_id)
+        .where(User.id == user_id, User.is_active == True)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
@@ -41,7 +42,7 @@ async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
     stmt = (
         select(User)
         .options(selectinload(User.role), selectinload(User.organization))
-        .where(User.email == email)
+        .where(User.email == email, User.is_active == True)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
@@ -61,6 +62,7 @@ async def get_users(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[U
     stmt = (
         select(User)
         .options(selectinload(User.role), selectinload(User.organization))
+        .where(User.is_active == True)
         .offset(skip)
         .limit(limit)
     )
@@ -96,9 +98,10 @@ async def update_user(db: AsyncSession, user_id: UUID, update_data: dict) -> Opt
     Returns:
         Optional[User]: Updated user, if found.
     """
+    update_data.setdefault("updated_at", utc_now())
     stmt = (
         update(User)
-        .where(User.id == user_id)
+        .where(User.id == user_id, User.is_active == True)
         .values(**update_data)
         .returning(User)
     )
@@ -134,10 +137,11 @@ async def delete_user(db: AsyncSession, user_id: UUID, deleted_by: Optional[UUID
     Returns:
         bool: Whether the operation succeeded.
     """
-    update_data = {"is_active": False}
+    deleted_at = utc_now()
+    update_data = {"is_active": False, "updated_at": deleted_at, "deleted_at": deleted_at}
     if deleted_by:
         update_data["deleted_by"] = deleted_by
-    stmt = update(User).where(User.id == user_id).values(**update_data)
+    stmt = update(User).where(User.id == user_id, User.is_active == True).values(**update_data)
     result = await db.execute(stmt)
     await db.commit()
     return result.rowcount > 0

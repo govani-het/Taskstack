@@ -6,6 +6,7 @@ from typing import List
 from uuid import UUID
 
 from app.models.comment import Comment
+from app.repositories.audit import mark_deleted
 
 
 async def get_comments_by_ticket(db: AsyncSession, ticket_id: UUID, skip: int = 0, limit: int = 100) -> List[Comment]:
@@ -99,8 +100,7 @@ async def delete_comment(db: AsyncSession, comment_id: UUID, deleted_by: UUID) -
     result = await db.execute(stmt)
     comment = result.scalar_one_or_none()
     if comment:
-        comment.is_active = False
-        comment.deleted_by = deleted_by
+        mark_deleted(comment, deleted_by)
         await db.commit()
         await db.refresh(comment)
     return comment

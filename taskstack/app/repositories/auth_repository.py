@@ -9,6 +9,7 @@ from sqlalchemy.future import select
 
 from app.models.password_reset_token import PasswordResetToken
 from app.models.users import User
+from app.repositories.audit import utc_now
 
 
 async def create_password_reset_token(db: AsyncSession, user_id: UUID) -> str:
@@ -32,7 +33,8 @@ async def create_password_reset_token(db: AsyncSession, user_id: UUID) -> str:
         user_id=user_id,
         token=token,
         expires_at=expires_at,
-        used=False
+        used=False,
+        created_by=user_id,
     )
 
     db.add(reset_token)
@@ -52,7 +54,10 @@ async def get_password_reset_token(db: AsyncSession, token: str) -> PasswordRese
     Returns:
         PasswordResetToken if found, None otherwise.
     """
-    query = select(PasswordResetToken).where(PasswordResetToken.token == token)
+    query = select(PasswordResetToken).where(
+        PasswordResetToken.token == token,
+        PasswordResetToken.is_active == True,
+    )
     result = await db.execute(query)
     return result.scalar_one_or_none()
 
@@ -64,12 +69,17 @@ async def mark_token_as_used(db: AsyncSession, token: str) -> None:
         db: Database session.
         token: Token string.
     """
-    query = select(PasswordResetToken).where(PasswordResetToken.token == token)
+    query = select(PasswordResetToken).where(
+        PasswordResetToken.token == token,
+        PasswordResetToken.is_active == True,
+    )
     result = await db.execute(query)
     reset_token = result.scalar_one_or_none()
 
     if reset_token:
         reset_token.used = True
+        reset_token.updated_at = utc_now()
+        reset_token.updated_by = reset_token.user_id
         await db.commit()
 
 

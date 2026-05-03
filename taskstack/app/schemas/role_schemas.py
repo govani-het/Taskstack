@@ -3,6 +3,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from uuid import UUID
+from datetime import datetime
 
 
 class RoleBase(BaseModel):
@@ -25,6 +26,13 @@ class RoleUpdate(BaseModel):
 class RoleResponse(RoleBase):
     """Schema for role responses."""
     id: UUID
+    is_active: bool
+    created_at: Optional[datetime] = None
+    created_by: Optional[UUID] = None
+    updated_at: Optional[datetime] = None
+    updated_by: Optional[UUID] = None
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[UUID] = None
 
     class Config:
         from_attributes = True

@@ -25,6 +25,12 @@ class OrganizationSubscriptionResponse(BaseModel):
     cancelled_at: Optional[datetime]
     cancelled_by: Optional[UUID]
     is_active: bool
+    created_at: Optional[datetime] = None
+    created_by: Optional[UUID] = None
+    updated_at: Optional[datetime] = None
+    updated_by: Optional[UUID] = None
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[UUID] = None
 
     class Config:
         from_attributes = True
@@ -36,6 +42,12 @@ class OrganizationSubscriptionBasicResponse(BaseModel):
     subscription_id: UUID
     subscribed_at: datetime
     is_active: bool
+    created_at: Optional[datetime] = None
+    created_by: Optional[UUID] = None
+    updated_at: Optional[datetime] = None
+    updated_by: Optional[UUID] = None
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[UUID] = None
 
     class Config:
         from_attributes = True

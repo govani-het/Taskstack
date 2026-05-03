@@ -51,6 +51,12 @@ class UserResponse(UserBase):
     role: Optional[RoleInfo] = None
     organization: Optional[OrganizationInfo] = None
     is_active: bool
+    created_at: Optional[datetime] = None
+    created_by: Optional[UUID] = None
+    updated_at: Optional[datetime] = None
+    updated_by: Optional[UUID] = None
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[UUID] = None
 
     class Config:
         from_attributes = True

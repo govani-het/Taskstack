@@ -1,11 +1,12 @@
 """Subscription repository functions."""
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
 
 from app.models.subscription import Subscription
+from app.repositories.audit import utc_now
 
 
 async def get_subscription_by_id(db: AsyncSession, subscription_id: UUID) -> Optional[Subscription]:
@@ -18,7 +19,7 @@ async def get_subscription_by_id(db: AsyncSession, subscription_id: UUID) -> Opt
     Returns:
         Optional[Subscription]: Result of the operation.
     """
-    stmt = select(Subscription).where(Subscription.id == subscription_id)
+    stmt = select(Subscription).where(Subscription.id == subscription_id, Subscription.is_active == True)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -33,7 +34,7 @@ async def get_subscription_by_name(db: AsyncSession, plan_name: str) -> Optional
     Returns:
         Optional[Subscription]: Result of the operation.
     """
-    stmt = select(Subscription).where(Subscription.plan_name == plan_name)
+    stmt = select(Subscription).where(Subscription.plan_name == plan_name, Subscription.is_active == True)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -49,7 +50,7 @@ async def get_subscriptions(db: AsyncSession, skip: int = 0, limit: int = 100) -
     Returns:
         List[Subscription]: Result of the operation.
     """
-    stmt = select(Subscription).offset(skip).limit(limit)
+    stmt = select(Subscription).where(Subscription.is_active == True).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()
 
@@ -82,9 +83,10 @@ async def update_subscription(db: AsyncSession, subscription_id: UUID, update_da
     Returns:
         Optional[Subscription]: Result of the operation.
     """
+    update_data.setdefault("updated_at", utc_now())
     stmt = (
         update(Subscription)
-        .where(Subscription.id == subscription_id)
+        .where(Subscription.id == subscription_id, Subscription.is_active == True)
         .values(**update_data)
         .returning(Subscription)
     )
@@ -104,10 +106,15 @@ async def delete_subscription(db: AsyncSession, subscription_id: UUID, deleted_b
     Returns:
         bool: Whether the operation succeeded.
     """
-    update_data = {"is_active": False}
+    deleted_at = utc_now()
+    update_data = {"is_active": False, "updated_at": deleted_at, "deleted_at": deleted_at}
     if deleted_by:
         update_data["deleted_by"] = deleted_by
-    stmt = update(Subscription).where(Subscription.id == subscription_id).values(**update_data)
+    stmt = (
+        update(Subscription)
+        .where(Subscription.id == subscription_id, Subscription.is_active == True)
+        .values(**update_data)
+    )
     result = await db.execute(stmt)
     await db.commit()
     return result.rowcount > 0

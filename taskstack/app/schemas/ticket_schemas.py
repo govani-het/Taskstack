@@ -57,6 +57,7 @@ class TicketResponse(TicketBase):
     project_id: UUID
     created_by: Optional[UUID] = None
     updated_by: Optional[UUID] = None
+    deleted_by: Optional[UUID] = None
     resolved_by: Optional[UUID] = None
     resolved_at: Optional[datetime] = None
     created_at: Optional[datetime] = None

@@ -1,12 +1,12 @@
 """Role repository functions."""
 
-from sqlalchemy import select, update, delete
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
 
 from app.models.roles import Role
+from app.repositories.audit import utc_now
 
 
 async def get_role_by_id(db: AsyncSession, role_id: UUID) -> Optional[Role]:
@@ -19,7 +19,7 @@ async def get_role_by_id(db: AsyncSession, role_id: UUID) -> Optional[Role]:
     Returns:
         Optional[Role]: Result of the operation.
     """
-    stmt = select(Role).where(Role.id == role_id)
+    stmt = select(Role).where(Role.id == role_id, Role.is_active == True)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -34,7 +34,7 @@ async def get_role_by_name(db: AsyncSession, name: str) -> Optional[Role]:
     Returns:
         Optional[Role]: Result of the operation.
     """
-    stmt = select(Role).where(Role.name == name)
+    stmt = select(Role).where(Role.name == name, Role.is_active == True)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -50,7 +50,7 @@ async def get_roles(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[R
     Returns:
         List[Role]: Result of the operation.
     """
-    stmt = select(Role).offset(skip).limit(limit)
+    stmt = select(Role).where(Role.is_active == True).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()
 
@@ -83,9 +83,10 @@ async def update_role(db: AsyncSession, role_id: UUID, update_data: dict) -> Opt
     Returns:
         Optional[Role]: Result of the operation.
     """
+    update_data.setdefault("updated_at", utc_now())
     stmt = (
         update(Role)
-        .where(Role.id == role_id)
+        .where(Role.id == role_id, Role.is_active == True)
         .values(**update_data)
         .returning(Role)
     )
@@ -105,10 +106,11 @@ async def delete_role(db: AsyncSession, role_id: UUID, deleted_by: Optional[UUID
     Returns:
         bool: Whether the operation succeeded.
     """
-    update_data = {"is_active": False}
+    deleted_at = utc_now()
+    update_data = {"is_active": False, "updated_at": deleted_at, "deleted_at": deleted_at}
     if deleted_by:
         update_data["deleted_by"] = deleted_by
-    stmt = update(Role).where(Role.id == role_id).values(**update_data)
+    stmt = update(Role).where(Role.id == role_id, Role.is_active == True).values(**update_data)
     result = await db.execute(stmt)
     await db.commit()
     return result.rowcount > 0

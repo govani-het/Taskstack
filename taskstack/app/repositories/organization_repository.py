@@ -1,13 +1,12 @@
 """Organization repository functions."""
 
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy.sql.functions import current_user
-
+from app.repositories.audit import utc_now
 from app.models.organization import Organization
 from app.utils.hash_password import hash_password
 
@@ -29,7 +28,7 @@ async def get_organization_by_id(db: AsyncSession, organization_id: UUID) -> Opt
     stmt = (
         select(Organization)
         .options(selectinload(Organization.subscriptions), selectinload(Organization.users))
-        .where(Organization.id == organization_id)
+        .where(Organization.id == organization_id, Organization.is_active == True)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
@@ -45,7 +44,7 @@ async def get_organization_by_name(db: AsyncSession, name: str) -> Optional[Orga
     Returns:
         Optional[Organization]: Result of the operation.
     """
-    stmt = select(Organization).where(Organization.name == name)
+    stmt = select(Organization).where(Organization.name == name, Organization.is_active == True)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -60,7 +59,7 @@ async def get_organization_by_email(db: AsyncSession, email: str) -> Optional[Or
     Returns:
         Optional[Organization]: Result of the operation.
     """
-    stmt = select(Organization).where(Organization.email == email)
+    stmt = select(Organization).where(Organization.email == email, Organization.is_active == True)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -79,6 +78,7 @@ async def get_organizations(db: AsyncSession, skip: int = 0, limit: int = 100) -
     stmt = (
         select(Organization)
         .options(selectinload(Organization.subscriptions), selectinload(Organization.users))
+        .where(Organization.is_active == True)
         .offset(skip)
         .limit(limit)
     )
@@ -99,8 +99,8 @@ async def get_unapproved_organizations(db: AsyncSession, skip: int = 0, limit: i
     """
     stmt = (
         select(Organization)
-        .options(selectinload(Organization.subscription_plan), selectinload(Organization.users))
-        .where(Organization.is_approved == False)
+        .options(selectinload(Organization.subscriptions), selectinload(Organization.users))
+        .where(Organization.is_approved == False, Organization.is_active == True)
         .offset(skip)
         .limit(limit)
     )
@@ -163,9 +163,10 @@ async def update_organization(db: AsyncSession, organization_id: UUID, update_da
     Returns:
         Optional[Organization]: Result of the operation.
     """
+    update_data.setdefault("updated_at", utc_now())
     stmt = (
         update(Organization)
-        .where(Organization.id == organization_id)
+        .where(Organization.id == organization_id, Organization.is_active == True)
         .values(**update_data)
         .returning(Organization)
     )
@@ -185,10 +186,15 @@ async def delete_organization(db: AsyncSession, organization_id: UUID, deleted_b
     Returns:
         bool: Whether the operation succeeded.
     """
-    update_data = {"is_active": False}
+    deleted_at = utc_now()
+    update_data = {"is_active": False, "updated_at": deleted_at, "deleted_at": deleted_at}
     if deleted_by:
         update_data["deleted_by"] = deleted_by
-    stmt = update(Organization).where(Organization.id == organization_id).values(**update_data)
+    stmt = (
+        update(Organization)
+        .where(Organization.id == organization_id, Organization.is_active == True)
+        .values(**update_data)
+    )
     result = await db.execute(stmt)
     await db.commit()
     return result.rowcount > 0

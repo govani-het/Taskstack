@@ -165,7 +165,8 @@ class ProjectMemberService:
         existing_member = await get_project_member_by_user_and_project(
             self.db,
             project_member_data.user_id,
-            project_id
+            project_id,
+            include_inactive=True,
         )
         if existing_member:
             if existing_member.is_active:
