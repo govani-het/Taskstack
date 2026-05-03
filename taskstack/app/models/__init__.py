@@ -3,6 +3,7 @@
 from .comment import Comment
 from .organization import Organization
 from .organization_subscription import OrganizationSubscription
+from .password_reset_token import PasswordResetToken
 from .project_member import ProjectMember
 from .reply import Reply
 from .roles import Role
@@ -17,6 +18,7 @@ __all__ = [
     "User",
     "Organization",
     "OrganizationSubscription",
+    "PasswordResetToken",
     "Subscription",
     "Project",
     "ProjectMember",

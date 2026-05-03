@@ -5,12 +5,11 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
-from datetime import datetime, timezone
 
 from app.models.projects import Project
 from app.models.project_member import ProjectMember
 from app.models.users import User
-from app.schemas.project_schemas import ProjectCreate
+from app.repositories.audit import mark_deleted
 
 
 async def get_project_by_id(db: AsyncSession, project_id: UUID) -> Optional[Project]:
@@ -30,7 +29,7 @@ async def get_project_by_id(db: AsyncSession, project_id: UUID) -> Optional[Proj
             selectinload(Project.members).selectinload(ProjectMember.user).selectinload(User.role),
             selectinload(Project.members).selectinload(ProjectMember.role)
         )
-        .where(Project.id == project_id)
+        .where(Project.id == project_id, Project.is_active == True)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
@@ -55,7 +54,7 @@ async def get_projects_by_organization(db: AsyncSession, organization_id: UUID, 
             selectinload(Project.members).selectinload(ProjectMember.user).selectinload(User.role),
             selectinload(Project.members).selectinload(ProjectMember.role)
         )
-        .where(Project.organization_id == organization_id)
+        .where(Project.organization_id == organization_id, Project.is_active == True)
         .offset(skip)
         .limit(limit)
     )
@@ -83,6 +82,7 @@ async def get_projects_by_member(db: AsyncSession, user_id: UUID, skip: int = 0,
             selectinload(Project.members).selectinload(ProjectMember.user).selectinload(User.role),
             selectinload(Project.members).selectinload(ProjectMember.role)
         )
+        .where(Project.is_active == True)
         .where(
             ProjectMember.user_id == user_id,
             ProjectMember.is_active == True,
@@ -143,6 +143,7 @@ async def get_all_projects(db: AsyncSession, skip: int = 0, limit: int = 100) ->
             selectinload(Project.members).selectinload(ProjectMember.user).selectinload(User.role),
             selectinload(Project.members).selectinload(ProjectMember.role)
         )
+        .where(Project.is_active == True)
         .offset(skip)
         .limit(limit)
     )
@@ -202,9 +203,7 @@ async def delete_project(db: AsyncSession, project: Project, deleted_by_id: UUID
     Returns:
         Project: Soft-deleted project.
     """
-    project.is_active = False
-    project.deleted_by = deleted_by_id
-    project.deleted_at = datetime.now(timezone.utc)
+    mark_deleted(project, deleted_by_id)
     db.add(project)
     await db.commit()
     await db.refresh(project)

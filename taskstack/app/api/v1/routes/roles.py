@@ -33,7 +33,7 @@ async def create_role(
         current_user: Authenticated user payload.
     """
     role_obj = RoleService(db)
-    return await role_obj.create_role_service(role_data)
+    return await role_obj.create_role_service(role_data, UUID(current_user["id"]))
 
 
 @router.get("/{role_id}", response_model=APIResponse[RoleResponse])

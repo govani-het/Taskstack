@@ -11,6 +11,7 @@ from app.models.work_log import WorkLog
 from app.models.project_member import ProjectMember
 from app.models.ticket import Ticket
 from app.models.projects import Project
+from app.repositories.audit import mark_deleted
 from app.constant.work_log_constant import (
     ERROR_WORK_LOG_NOT_FOUND,
     ERROR_WORK_LOG_ACCESS_DENIED,
@@ -51,7 +52,8 @@ async def get_work_logs(
 
     elif current_user["role"] in [ROLE_DEVELOPER, ROLE_REPORTER]:
         member_query = select(ProjectMember.id).where(
-            ProjectMember.user_id == current_user["id"]
+            ProjectMember.user_id == current_user["id"],
+            ProjectMember.is_active == True,
         )
         member_ids = (await db.execute(member_query)).scalars().all()
         if member_ids:
@@ -88,7 +90,8 @@ async def get_work_log_by_id(db: AsyncSession, work_log_id: UUID, current_user: 
 
     elif current_user["role"] in [ROLE_DEVELOPER, ROLE_REPORTER]:
         member_query = select(ProjectMember.id).where(
-            ProjectMember.user_id == current_user["id"]
+            ProjectMember.user_id == current_user["id"],
+            ProjectMember.is_active == True,
         )
         member_ids = (await db.execute(member_query)).scalars().all()
         if member_ids:
@@ -246,16 +249,14 @@ async def delete_work_log(db: AsyncSession, work_log_id: UUID, current_user: dic
             detail=ERROR_WORK_LOG_DELETE_DENIED,
         )
 
-    work_log.is_active = False
-
     member_query = select(ProjectMember.id).where(
         and_(ProjectMember.user_id == current_user["id"],
-             ProjectMember.project_id == work_log.project_id)
+             ProjectMember.project_id == work_log.project_id,
+             ProjectMember.is_active == True)
     )
     member_result = await db.execute(member_query)
     member_id = member_result.scalar_one_or_none()
-    if member_id:
-        work_log.deleted_by = member_id
+    mark_deleted(work_log, member_id)
 
     await db.commit()
     return True

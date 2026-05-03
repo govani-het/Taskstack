@@ -9,7 +9,7 @@ from uuid import UUID
 from app.models.ticket import Ticket
 from app.models.project_member import ProjectMember
 from app.models.users import User
-from app.models.roles import Role
+from app.repositories.audit import mark_deleted
 
 
 async def get_ticket_by_id(db: AsyncSession, ticket_id: UUID) -> Optional[Ticket]:
@@ -130,12 +130,7 @@ async def delete_ticket(db: AsyncSession, ticket: Ticket, deleted_by_id: UUID) -
     Returns:
         Ticket: Soft-deleted ticket with related data loaded.
     """
-    from datetime import datetime, timezone
-    from app.models.project_member import ProjectMember as PM
-    
-    ticket.is_active = False
-    ticket.deleted_by = deleted_by_id
-    ticket.deleted_at = datetime.now(timezone.utc)
+    mark_deleted(ticket, deleted_by_id)
     db.add(ticket)
     await db.commit()
     await db.refresh(ticket)

@@ -1,1 +1,0 @@
-# Trainee Project Structure

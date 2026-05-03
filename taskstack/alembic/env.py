@@ -14,6 +14,8 @@ from app.config.database import Base
 from app.models import (
     Comment,
     Organization,
+    OrganizationSubscription,
+    PasswordResetToken,
     Project,
     ProjectMember,
     Reply,

@@ -40,7 +40,11 @@ class SubscriptionService:
         """
         self.db = db
 
-    async def create_subscription_service(self, subscription_data: SubscriptionCreate) -> APIResponse[SubscriptionResponse]:
+    async def create_subscription_service(
+        self,
+        subscription_data: SubscriptionCreate,
+        created_by: Optional[UUID] = None,
+    ) -> APIResponse[SubscriptionResponse]:
         """Create a subscription.
 
         Args:
@@ -55,6 +59,8 @@ class SubscriptionService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_SUBSCRIPTION_PLAN_NAME_ALREADY_EXISTS)
 
         subscription_dict = subscription_data.model_dump()
+        if created_by:
+            subscription_dict["created_by"] = created_by
         try:
             subscription = await create_subscription(self.db, subscription_dict)
             return APIResponse.success_response(SUCCESS_SUBSCRIPTION_CREATED, SubscriptionResponse.model_validate(subscription))

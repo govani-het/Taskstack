@@ -41,7 +41,7 @@ class RoleService:
         """
         self.db = db
 
-    async def create_role_service(self, role_data: RoleCreate) -> APIResponse[RoleResponse]:
+    async def create_role_service(self, role_data: RoleCreate, created_by: Optional[UUID] = None) -> APIResponse[RoleResponse]:
         """Create a role.
 
         Args:
@@ -59,6 +59,8 @@ class RoleService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_ROLE_NAME_ALREADY_EXISTS)
 
         role_dict = role_data.model_dump()
+        if created_by:
+            role_dict["created_by"] = created_by
         try:
             role = await create_role(self.db, role_dict)
             return APIResponse.success_response(SUCCESS_ROLE_CREATED, RoleResponse.model_validate(role))

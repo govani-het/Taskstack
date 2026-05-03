@@ -3,6 +3,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from uuid import UUID
+from datetime import datetime
 
 
 class WorkLogBase(BaseModel):
@@ -30,10 +31,12 @@ class WorkLogResponse(WorkLogBase):
     project_id: UUID
     ticket_id: UUID
     is_active: bool
-    created_at: str
-    updated_at: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
     created_by: UUID
-    updated_by: UUID
+    updated_by: Optional[UUID] = None
+    deleted_by: Optional[UUID] = None
 
     class Config:
         from_attributes = True

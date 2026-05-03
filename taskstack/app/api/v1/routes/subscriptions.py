@@ -34,7 +34,7 @@ async def create_subscription(
         current_user: Authenticated user payload.
     """
     subscription_obj = SubscriptionService(db)
-    return await subscription_obj.create_subscription_service(subscription_data)
+    return await subscription_obj.create_subscription_service(subscription_data, UUID(current_user["id"]))
 
 
 @router.get("/{subscription_id}", response_model=APIResponse[SubscriptionResponse])
