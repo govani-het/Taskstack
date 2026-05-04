@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/hetgovani/taskstack-assets/main/logo.png" alt="TaskStack Logo" width="160"/>
-
 # ⚡ TaskStack
 
 **Modern Project & Ticket Management Backend**
